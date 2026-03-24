@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react"; 
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { ChevronLeft, X, Check, RefreshCcw, Quote, Download, Loader2, SubscriptIcon, Heart } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, X, Check, RefreshCcw, Quote, Download, Loader2, Heart } from "lucide-react";
 import { Kanit } from "next/font/google";
 import { toPng } from 'html-to-image'; 
 
@@ -10,7 +10,7 @@ const kanit = Kanit({
   weight: ["300", "400", "500", "600", "700", "800", "900"] 
 });
 
-// --- 1. DATA: Mood Check (8 อารมณ์พื้นฐาน) ---
+// --- 1. DATA: Mood Check (10 อารมณ์) ---
 const moodOptions = [
   { id: "happy", icon: "😊", title: "มีความสุข", theme: "border-yellow-400 bg-yellow-50 text-yellow-600" },
   { id: "sad", icon: "😢", title: "เศร้าหมอง", theme: "border-blue-400 bg-blue-50 text-blue-600" },
@@ -19,10 +19,12 @@ const moodOptions = [
   { id: "love", icon: "❤️", title: "คลั่งรัก", theme: "border-pink-500 bg-pink-50 text-pink-600" },
   { id: "lonely", icon: "🍂", title: "โดดเดี่ยว", theme: "border-stone-500 bg-stone-50 text-stone-600" },
   { id: "hope", icon: "✨", title: "เปี่ยมหวัง", theme: "border-emerald-400 bg-emerald-50 text-emerald-600" },
-  { id: "confused", icon: "🌀", title: "สับสน", theme: "border-indigo-400 bg-indigo-50 text-indigo-600" }
+  { id: "confused", icon: "🌀", title: "สับสน", theme: "border-indigo-400 bg-indigo-50 text-indigo-600" },
+  { id: "apathetic", icon: "😐", title: "เฉยเมย", theme: "border-slate-400 bg-slate-50 text-slate-500" },
+  { id: "exhausted", icon: "🫠", title: "เหนื่อยล้า", theme: "border-orange-400 bg-orange-50 text-orange-600" }
 ];
 
-// --- 2. DATA: คำนามธรรม (30 คำ) ---
+// --- 2. DATA: คำนามธรรม (30 คำต่อหมวด) ---
 const abstractWords = {
   happy: [
     "รอยยิ้ม", "เสียงหัวเราะ", "เบิกบาน", "อบอุ่น", "แสงแดด", "ดอกไม้", "โบยบิน", "เปล่งประกาย", "สมหวัง", "หอมหวาน", 
@@ -63,56 +65,88 @@ const abstractWords = {
     "หมอกควัน", "ทางแยก", "วังวน", "วงกต", "ไม่เข้าใจ", "พร่ามัว", "หลงทิศ", "คำถาม", "ลังเล", "สองจิตสองใจ", 
     "ปริศนา", "ซับซ้อน", "ยุ่งเหยิง", "พันกัน", "ค้นหา", "มืดมน", "ตัวเลือก", "ก้าวพลาด", "ภาพลวงตา", "เสียงรบกวน", 
     "ว้าวุ่น", "ไม่แน่นอน", "เคลือบแคลง", "ระแวง", "หลับตาเดิน", "ไร้คำตอบ", "หมุนวน", "สะท้อน", "กลืนไม่เข้า", "เงื่อนงำ"
+  ],
+  apathetic: [
+    "ไร้สีสัน", "ว่างเปล่า", "ผ่านไป", "ลมพัด", "นาฬิกาทราย", "ชินชา", "ปล่อยวาง", "ฝุ่นควัน", "ลอยตัว", "ชั่วคราว", 
+    "ความเงียบ", "ละเลย", "จืดจาง", "ไร้จุดหมาย", "เย็นชา", "มองข้าม", "นิ่งเฉย", "วันเดิมๆ", "เท่าเดิม", "ตามลม", 
+    "ไร้น้ำหนัก", "ไม่คาดหวัง", "รอยเท้า", "ละออง", "หลุดพ้น", "ลืมเลือน", "เพียงผ่าน", "ไม่ผูกพัน", "ชั่วครู่", "ธุลี"
+  ],
+  exhausted: [
+    "หมดแรง", "แบกรับ", "ถอนหายใจ", "หนักอึ้ง", "ล้มตัว", "พักผ่อน", "รอยย่น", "ทิ้งตัว", "ภาระ", "พอแล้ว", 
+    "อ่อนล้า", "หลับตา", "เงาตะคุ่ม", "กัดฟัน", "ฝืนยิ้ม", "แบกโลก", "ลากขา", "ล้มลุก", "ร่วงหล่น", "ปล่อยมือ", 
+    "คลาน", "สะสม", "ตึงเครียด", "สุดทาง", "นาฬิกาปลุก", "แบตเตอรี่", "หมดไฟ", "ฝืนทน", "ปิดสวิตช์", "หยาดเหงื่อ"
   ]
 };
-
-// --- 3. พิกัดปลอดภัย (Safe Zones) ---
+// 💡 วงกว้าง 110px ครึ่งนึงคือ 55px (calc(50% - 55px) จะทำให้อยู่ตรงกลางพอดีเป๊ะ)
 const safePositions = [
-  "top-[0px] left-[5px]",       
-  "top-[25px] right-[5px]",     
-  "top-[135px] left-[115px]",   
-  "top-[250px] left-[5px]",     
-  "top-[195px] right-[0px]",    
-  "top-[380px] left-[15px]",    
-  "top-[330px] right-[10px]",   
-  "top-[480px] left-[115px]"    
+  // --- โซนบน 5 วง (เกาะขอบบน) ---
+  "top-[6%] left-[5%]",                     
+  "top-[4%] right-[8%]",                    
+  "top-[16%] left-[calc(50%-55px)]",        // 💡 แก้ตรงนี้ (ตรงกลางบน)
+  "top-[28%] left-[8%]",                    
+  "top-[26%] right-[5%]",                   
+
+  // --- โซนล่าง 5 วง (เกาะขอบล่าง) ---
+  "bottom-[28%] left-[6%]",                 
+  "bottom-[26%] right-[8%]",                
+  "bottom-[16%] left-[calc(50%-55px)]",     // 💡 แก้ตรงนี้ (ตรงกลางล่าง)
+  "bottom-[4%] left-[8%]",                  
+  "bottom-[6%] right-[5%]"                  
 ];
 
-const floatingAnimation = (delay: number): any => ({
-  y: [-10, 10, -10],
+// 💡 เพิ่มการหมุน (rotate) เบาๆ และให้ duration แรนด้อมนิดหน่อยจะได้ไม่ลอยพร้อมกันหมด
+const floatingAnimation = (delay: number, duration: number = 6): any => ({
+  y: [-12, 12, -12],
+  rotate: [-1.5, 1.5, -1.5], // เอียงซ้ายขวาเบาๆ
   transition: {
-    duration: 6,
+    duration: duration,
     ease: "easeInOut",
     repeat: Infinity,
     delay: delay
   }
 });
 
-// --- Helper Component สำหรับ Bubble ---
-const Circle = ({ mood, pos, delay, onStart }: any) => {
-  const getBorderColor = (id: string) => {
-    const colors: Record<string, string> = {
-      happy: "#facc15",    
-      sad: "#60a5fa",      
-      angry: "#ef4444",    
-      fear: "#a855f7",     
-      love: "#ec4899",     
-      lonely: "#78716c",   
-      hope: "#34d399",     
-      confused: "#818cf8"  
+const loadingPhrases = [
+  "กำลังตกผลึกความรู้สึกของคุณ...",
+  "บางครั้งคำตอบที่ดีที่สุด ซ่อนอยู่ในความรู้สึกเล็กๆ...",
+  "จงใช้ความรู้สึกนี้ เป็นเข็มทิศของวันพรุ่งนี้...",
+  "กำลังประกอบร่างถ้อยคำ เพื่อคุณคนเดียว..."
+];
+// --- Helper Component สำหรับ Bubble (อัปเกรด Glow Effect) ---
+const Circle = ({ mood, pos, delay, index, onStart }: any) => {
+  // 💡 สร้างฟังก์ชันคืนค่าทั้งสีขอบและสีเงาเรืองแสง
+  const getThemeColors = (id: string) => {
+    const themes: Record<string, { border: string, shadow: string }> = {
+      happy: { border: "#facc15", shadow: "rgba(250, 204, 21, 0.3)" },     // Yellow
+      sad: { border: "#60a5fa", shadow: "rgba(96, 165, 250, 0.3)" },       // Blue
+      angry: { border: "#ef4444", shadow: "rgba(239, 68, 68, 0.3)" },      // Red
+      fear: { border: "#a855f7", shadow: "rgba(168, 85, 247, 0.3)" },      // Purple
+      love: { border: "#ec4899", shadow: "rgba(236, 72, 153, 0.3)" },      // Pink
+      lonely: { border: "#78716c", shadow: "rgba(120, 113, 108, 0.2)" },   // Stone
+      hope: { border: "#34d399", shadow: "rgba(52, 211, 153, 0.3)" },      // Emerald
+      confused: { border: "#818cf8", shadow: "rgba(129, 140, 248, 0.3)" }, // Indigo
+      apathetic: { border: "#94a3b8", shadow: "rgba(148, 163, 184, 0.2)" },// Slate
+      exhausted: { border: "#fb923c", shadow: "rgba(251, 146, 60, 0.3)" }  // Orange
     };
-    return colors[id] || "#e5e7eb";
+    return themes[id] || { border: "#e5e7eb", shadow: "rgba(0,0,0,0.05)" };
   };
+
+  const theme = getThemeColors(mood.id);
+  // สุ่มความเร็วลอยให้แต่ละลูกไม่เท่ากัน (ระหว่าง 5-8 วินาที)
+  const duration = 5 + (index % 4); 
 
   return (
     <motion.button 
-      animate={floatingAnimation(delay)}
+      animate={floatingAnimation(delay, duration)}
       onClick={() => onStart(mood)}
-      className={`absolute ${pos} w-[110px] h-[110px] rounded-full border-[2.5px] shadow-[0_8px_20px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all bg-white shrink-0 z-20 hover:shadow-md`}
-      style={{ borderColor: getBorderColor(mood.id) }}
+      className={`absolute ${pos} w-[110px] h-[110px] rounded-full border-[2.5px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all bg-white/90 backdrop-blur-sm shrink-0 z-20 hover:scale-105`}
+      style={{ 
+        borderColor: theme.border,
+        boxShadow: `0 10px 25px -5px ${theme.shadow}, 0 8px 10px -6px ${theme.shadow}` // 💡 เพิ่มเงาเรืองแสง
+      }}
     >
-      <span className="text-4xl mb-0.5">{mood.icon}</span>
-      <span className="font-extrabold text-[12px] text-stone-700 tracking-tighter text-center px-1 leading-none">{mood.title}</span>
+      <span className="text-5xl mb-0.5 drop-shadow-sm">{mood.icon}</span>
+      <span className="font-extrabold text-[12px] text-stone-700 tracking-tight text-center px-1 leading-none">{mood.title}</span>
     </motion.button>
   );
 };
@@ -131,12 +165,27 @@ export default function SwipeQuoteApp() {
 
   const quoteCardRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const [loadingTextIndex, setLoadingTextIndex] = useState(0);
 
   useEffect(() => {
     const shuffled = [...moodOptions].sort(() => Math.random() - 0.5);
     setRandomizedMoods(shuffled);
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    let interval: any;
+    if (gameState === "generating") {
+      setLoadingTextIndex(0); 
+      interval = setInterval(() => {
+        setLoadingTextIndex((prev) => (prev + 1) % loadingPhrases.length);
+      }, 2000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [gameState]);
 
   const handleSaveImage = async () => {
     if (!quoteCardRef.current) return;
@@ -194,7 +243,6 @@ export default function SwipeQuoteApp() {
 
   const startGame = (mood: {id: string, title: string}) => {
     setPlayerMood(mood);
-    // เซฟไทป์คีย์เวิร์ดให้ถูกต้อง
     const moodKey = mood.id as keyof typeof abstractWords;
     const words = abstractWords[moodKey].sort(() => Math.random() - 0.5);
     setDeck(words);
@@ -231,104 +279,194 @@ export default function SwipeQuoteApp() {
     setRandomizedMoods([...moodOptions].sort(() => Math.random() - 0.5));
   };
 
-  // ✨ ฟังก์ชันสำหรับดึงสีขอบและสีข้อความออกมาอย่างปลอดภัย ป้องกันบั๊ก Undefined ✨
   const getActiveThemeClasses = () => {
-    if (!playerMood) return "border-stone-500 text-stone-400"; // ค่าเริ่มต้นกันพัง
+    if (!playerMood) return "border-stone-500 text-stone-400"; 
     const currentMoodInfo = moodOptions.find(m => m.id === playerMood.id);
     if (!currentMoodInfo) return "border-stone-500 text-stone-400";
-    
-    // แกะเอาเฉพาะ border และ text ออกมาจากธีม เช่น "border-yellow-400 bg-yellow-50 text-yellow-600"
     const classes = currentMoodInfo.theme.split(" ");
-    return `${classes[0]} ${classes[2]}`; // ส่งกลับ border-... และ text-...
+    return `${classes[0]} ${classes[2]}`; 
   };
+
+  const timestamp = new Date().toLocaleString('th-TH', { 
+    year: 'numeric', month: 'short', day: 'numeric', 
+    hour: '2-digit', minute: '2-digit' 
+  });
 
   return (
     <div className={`min-h-[100dvh] bg-stone-100 flex flex-col items-center justify-center sm:p-4 ${kanit.className} overflow-hidden`}>
       <div className="w-full max-w-md bg-white shadow-2xl overflow-hidden h-[100dvh] sm:h-[850px] flex flex-col relative sm:rounded-[2.5rem] sm:border-[4px] sm:border-stone-900">
         
         {/* === 1. START SCREEN === */}
-        {gameState === "start" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center p-6 text-center relative bg-white h-full w-full overflow-hidden">
-            <div className="mt-8 mb-4 z-30 pointer-events-none">
-              <h1 className="text-5xl font-black mb-1 leading-tight tracking-tighter text-stone-900">
-                {"คมสัด"}<span className="text-blue-600">สัด</span>
-              </h1>
-              <p className="text-stone-400 text-[13px] font-medium tracking-wide px-1">
-                เลือกสิ่งที่ "ทัช" ในใจ ให้เป็นคำคมเฉพาะคุณ
-              </p>
-            </div>
-            
-            <div className="w-full max-w-[340px] h-[600px] relative mx-auto z-20 mt-2 transition-opacity duration-500" style={{ opacity: isMounted ? 1 : 0 }}>
-              {isMounted && randomizedMoods.map((mood, index) => (
-                <Circle key={mood.id} mood={mood} pos={safePositions[index]} delay={index * 0.4} onStart={startGame} />
-              ))}
-            </div>
+   {/* === 1. START SCREEN === */}
+{gameState === "start" && (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-6 text-center relative bg-stone-50 h-full w-full overflow-hidden">
+    
+    {/* 💡 เพิ่มลาย Dot Grid จางๆ สไตล์ Modern Web */}
+    <div className="absolute inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
 
-            <p className="text-[9px] text-stone-300 mt-auto font-black uppercase tracking-[0.2em] relative z-30 pb-4">
-              Khomsatsat x Upskill with Fuii
-            </p>
-          </motion.div>
-        )}
+    <div className="absolute inset-0 w-full h-full z-10" style={{ opacity: isMounted ? 1 : 0 }}>
+      {isMounted && randomizedMoods.map((mood, index) => (
+        <Circle key={mood.id} mood={mood} pos={safePositions[index]} delay={index * 0.4} index={index} onStart={startGame} />
+      ))}
+    </div>
 
-        {/* === 2. SWIPING SCREEN === */}
-        {gameState === "swiping" && deck.length > 0 && (
-          <div className="flex-1 flex flex-col bg-stone-50 relative overflow-hidden h-full">
-            <div className="pt-12 pb-6 px-6 bg-white border-b border-stone-200 flex flex-col items-center justify-center z-10 shadow-sm relative">
-              <button onClick={resetApp} className="absolute left-6 top-14 p-2 bg-stone-100 rounded-full hover:bg-stone-200 text-stone-600 transition-colors"><ChevronLeft size={20} /></button>
-              <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest mb-3">สะสมคำที่ทัชใจ</h2>
-              <div className="flex gap-2">
-                {[0, 1, 2].map(slot => (
-                  <div key={slot} className={`w-16 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${collectedWords[slot] ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-stone-100 border-stone-200 text-transparent'}`}>
-                    {collectedWords[slot] || "?"}
-                  </div>
-                ))}
-              </div>
-            </div>
+    {/* โลโก้ตรงกลาง มีแสงออร่าสีขาวข้างหลัง */}
+    <div className="relative z-30 pointer-events-none flex flex-col items-center justify-center w-[250px] h-[250px]">
+       {/* 💡 ออร่าสีขาวรองพื้นโลโก้ */}
+      <div className="absolute inset-0 bg-white/70 blur-2xl rounded-full"></div>
+      
+      <div className="relative z-10">
+        <h1 className="text-6xl font-black mb-1 leading-tight tracking-tighter text-stone-900 drop-shadow-sm">
+          {"คมสัด"}<span className="text-blue-600">สัด</span>
+        </h1>
+        <p className="text-stone-500 text-[13px] font-medium tracking-wide px-1">
+          เลือกสิ่งที่ "ทัช" ในใจ ให้เป็นคำคมเฉพาะคุณ
+        </p>
+      </div>
+    </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center relative w-full px-6">
-              <AnimatePresence>
-                <motion.div
-                  key={currentCardIndex}
-                  style={{ x, rotate, scale: cardScale }}
-                  drag="x" dragConstraints={{ left: 0, right: 0 }} onDragEnd={handleDragEnd}
-                  initial={{ scale: 0.8, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0, transition: { duration: 0.15 } }}
-                  className="absolute w-full max-w-[300px] aspect-square bg-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-[6px] border-stone-100 flex flex-col items-center justify-center p-8 cursor-grab active:cursor-grabbing z-20"
-                >
-                  <motion.div style={{ opacity: opacityNope }} className="absolute top-10 right-0 border-[4px] border-stone-400 text-stone-400 font-black text-2xl px-4 py-1 rounded-2xl rotate-[20deg] pointer-events-none z-30 uppercase">ข้าม</motion.div>
-                  <motion.div style={{ opacity: opacityLike }} className="absolute top-10 left-0 border-[4px] border-blue-600 text-blue-600 font-black text-2xl px-4 py-1 rounded-2xl -rotate-[20deg] pointer-events-none z-30 uppercase">เอาคำนี้</motion.div>
-                  <h3 className="text-[36px] font-black text-stone-800 text-center leading-tight tracking-tight">
-                    {deck[currentCardIndex]}
-                  </h3>
-                </motion.div>
-              </AnimatePresence>
-              <div className="absolute w-full max-w-[300px] aspect-square bg-white rounded-full shadow-sm border-[6px] border-stone-100 -z-10 scale-[0.90] translate-y-6"></div>
-            </div>
+    <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md">
+      Khomsatsat x Upskill with Fuii
+    </p>
+  </motion.div>
+)}
 
-            <div className="pb-12 pt-4 flex justify-between items-center w-full px-16 text-[13px] font-bold tracking-widest text-stone-400 relative z-20">
-              <span className="flex flex-col items-center gap-1 text-stone-400"><X size={24}/> ไม่รู้สึก</span>
-              <span className="flex flex-col items-center gap-1 text-blue-600"><Check size={24}/> ทัชใจ</span>
-            </div>
+     {/* === 2. SWIPING SCREEN (แก้ไขให้สวยขึ้น) === */}
+{gameState === "swiping" && deck.length > 0 && (
+  <div className="flex-1 flex flex-col bg-stone-50 relative overflow-hidden h-full">
+    {/* ส่วนหัวสะสมคำ */}
+    <div className="pt-12 pb-6 px-6 bg-white border-b border-stone-200 flex flex-col items-center justify-center z-10 shadow-sm relative">
+      <button onClick={resetApp} className="absolute left-6 top-14 p-2 bg-stone-100 rounded-full hover:bg-stone-200 text-stone-600 transition-colors">
+        <ChevronLeft size={20} />
+      </button>
+      <h2 className="text-[13px] font-bold text-stone-400 uppercase tracking-widest mb-3">สะสมคำที่ทัชใจ</h2>
+      <div className="flex gap-2.5">
+        {[0, 1, 2].map(slot => (
+          <div key={slot} className={`w-18 h-9 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${collectedWords[slot] ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-stone-100 border-stone-200 text-transparent'}`}>
+            {collectedWords[slot] || "?"}
           </div>
-        )}
+        ))}
+      </div>
+      <div className="mt-4 flex items-center justify-center gap-4 text-[11px] font-medium text-stone-400">
+        <span className="flex items-center gap-1"><ChevronLeft size={14} /> ปัดซ้าย เพื่อข้าม</span>
+        <span className="w-px h-3 bg-stone-300"></span>
+        <span className="flex items-center gap-1">ปัดขวา เพื่อเลือก <ChevronRight size={14} /></span>
+      </div>
+    </div>
 
-        {/* === 3. GENERATING === */}
-        {gameState === "generating" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-stone-900 relative">
-            <Loader2 size={48} className="text-blue-500 animate-spin mb-6 relative z-10" />
-            <h2 className="text-2xl font-black text-white mb-2 relative z-10">หลอมรวมความรู้สึก...</h2>
-            <div className="flex gap-2 justify-center mt-4 relative z-10">
-              {collectedWords.map((w, i) => (
-                <span key={i} className="text-[12px] bg-white/10 text-stone-300 px-3 py-1 rounded-full border border-white/20">{w}</span>
-              ))}
-            </div>
-          </motion.div>
-        )}
-{/* === 4. RESULT SCREEN (เวอร์ชันแก้บั๊ก \n และคำล้น) === */}
+    {/* พื้นที่การปัดคำ (เพิ่มมิติให้สวยขึ้น) */}
+    <div className="flex-1 flex flex-col items-center justify-center relative w-full px-6 py-10">
+      <AnimatePresence>
+        <motion.div
+          key={currentCardIndex}
+          style={{ x, rotate, scale: cardScale }}
+          drag="x" dragConstraints={{ left: 0, right: 0 }} onDragEnd={handleDragEnd}
+          initial={{ scale: 0.8, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0, transition: { duration: 0.15 } }}
+          className="absolute w-full max-w-[310px] aspect-square bg-white rounded-full shadow-[0_25px_60px_rgba(0,0,0,0.1)] border-[6px] border-white flex flex-col items-center justify-center p-8 cursor-grab active:cursor-grabbing z-20"
+        >
+          {/* ป้ายกำกับ ข้าม/เอาคำนี้ (Yup/Like) */}
+          <motion.div style={{ opacity: opacityNope }} className="absolute top-12 right-0 border-[4px] border-stone-400 text-stone-400 font-black text-2xl px-5 py-1.5 rounded-2xl rotate-[20deg] pointer-events-none z-30 uppercase">ข้าม</motion.div>
+          <motion.div style={{ opacity: opacityLike }} className="absolute top-12 left-0 border-[4px] border-blue-600 text-blue-600 font-black text-2xl px-5 py-1.5 rounded-2xl -rotate-[20deg] pointer-events-none z-30 uppercase">เอาคำนี้</motion.div>
+          
+          {/* ตัวคำ (ขยายขนาด, ตัวหนา, เพิ่มเงา) */}
+          <h3 className="text-[42px] font-black text-stone-900 text-center leading-tight tracking-tight drop-shadow-sm">
+            {deck[currentCardIndex]}
+          </h3>
+        </motion.div>
+      </AnimatePresence>
+      {/* การ์ดซ้อนหลัง (เอฟเฟกต์มิติ) */}
+      <div className="absolute w-full max-w-[310px] aspect-square bg-white rounded-full shadow-sm border-[6px] border-white -z-10 scale-[0.92] translate-y-8"></div>
+    </div>
+
+    {/* ส่วนท้ายที่เป็นไอคอนการปัด */}
+    <div className="pb-16 pt-6 flex justify-between items-center w-full px-20 text-[14px] font-bold tracking-widest relative z-20">
+      <button onClick={handleSwipeLeft} className="flex flex-col items-center gap-1.5 text-stone-500 hover:text-stone-700 transition-colors">
+        <span className="p-3.5 bg-stone-100 rounded-full">
+          <X size={26} />
+        </span>
+        ไม่รู้สึก
+      </button>
+      <button onClick={handleSwipeRight} className="flex flex-col items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors">
+        <span className="p-3.5 bg-blue-50 rounded-full shadow-inner">
+          <Check size={26} />
+        </span>
+        ทัชใจ
+      </button>
+    </div>
+  </div>
+)}
+
+        {/* === 3. GENERATING (อัปเกรดความพรีเมียม & อนิเมชันหลอมรวม) === */}
+{gameState === "generating" && (
+  <motion.div 
+    initial={{ opacity: 0 }} 
+    animate={{ opacity: 1 }} 
+    className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-stone-950 relative overflow-hidden"
+  >
+    {/* 💡 1. แสงออร่าพื้นหลัง (Animated Gradient Pulse) */}
+    <motion.div 
+      animate={{ 
+        scale: [1, 1.2, 1],
+        opacity: [0.15, 0.3, 0.15]
+      }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-600/40 via-stone-950 to-stone-950 pointer-events-none"
+    />
+
+    {/* 💡 2. ตัวโหลดข้อมูลซ้อน Layer (Advanced Loader) */}
+    <div className="relative mb-10 z-10 flex items-center justify-center">
+      {/* แสงเรืองรองใต้ Loader */}
+      <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
+      
+      {/* วงแหวนหมุนด้านนอก */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+        className="absolute w-20 h-20 border-[3px] border-stone-800/80 border-t-blue-500 rounded-full"
+      />
+      
+      {/* ไอคอนหมุนด้านใน */}
+      <Loader2 size={36} className="text-blue-400 animate-spin" />
+    </div>
+    
+    {/* 💡 3. ข้อความบิ๊วอารมณ์ (สมูทขึ้นด้วย Blur Transition) */}
+    <AnimatePresence mode="wait">
+      <motion.h2 
+        key={loadingTextIndex}
+        initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="text-[18px] sm:text-[20px] font-bold text-stone-100 mb-4 relative z-10 h-14 flex items-center justify-center drop-shadow-md tracking-wide" 
+      >
+        {loadingPhrases[loadingTextIndex]}
+      </motion.h2>
+    </AnimatePresence>
+
+    {/* 💡 4. แท็กคำศัพท์ที่ค่อยๆ เด้งขึ้นมาทีละคำ (Staggered Entrance) */}
+    <div className="flex gap-2.5 justify-center mt-4 relative z-10">
+      {collectedWords.map((w, i) => (
+        <motion.span 
+          key={i} 
+          initial={{ opacity: 0, scale: 0.8, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: i * 0.3, duration: 0.5, type: "spring" }} // เด้งดึ๋งเบาๆ ทีละคำ
+          className="text-[12px] font-bold bg-white/5 text-stone-300 px-4 py-1.5 rounded-full border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.03)] backdrop-blur-md"
+        >
+          {w}
+        </motion.span>
+      ))}
+    </div>
+  </motion.div>
+)}
+
+        {/* === 4. RESULT SCREEN === */}
+      {/* === 4. RESULT SCREEN (เวอร์ชันสวยขึ้น พรีเมียมขึ้น แก้ปัญหาบรรทัดล้น) === */}
 {gameState === "result" && (
   <div className="flex-1 flex flex-col bg-stone-900 relative h-full overflow-hidden">
     
-    {/* ✨ พื้นที่แคปเจอร์ภาพ (จัด Composition ใหม่) ✨ */}
+    {/* ✨ พื้นที่แคปเจอร์ภาพ (Glow Background และ Typography Optimized) ✨ */}
     <div 
       ref={quoteCardRef} 
       className="flex-1 flex flex-col items-center justify-center text-center p-10 relative bg-stone-900"
@@ -336,45 +474,56 @@ export default function SwipeQuoteApp() {
         backgroundImage: 'radial-gradient(circle at center, #262626 0%, #1c1917 100%)'
       }}
     >
-      {/* Quote Icon */}
-      <Quote size={32} className="text-blue-500/30 absolute top-12 left-10 -rotate-12" />
+      {/* Dynamic Background Glow - แสงออร่าตามสีอารมณ์ข้างหลัง (Glow Effect) */}
+      <div 
+        className="absolute inset-0 opacity-15 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at center, ${playerMood ? moodOptions.find(m => m.id === playerMood.id)?.theme.split(" ")[2].replace("text-", "#").replace("-600", "") || "#2563eb" : "#2563eb"} 0%, transparent 70%)`
+        }}
+      ></div>
+
+      {/* Quote Icon - ปรับจูน Typography ให้เท่ขึ้น */}
+      <Quote size={32} className="text-blue-500/20 absolute top-12 left-10 -rotate-12 drop-shadow-sm" />
 
       <div className="relative z-10 w-full flex flex-col items-center gap-10">
         
-        {/* ส่วนคำคม: จัดจังหวะการอ่านใหม่ */}
-        <div className="w-full max-w-[95%] px-2">
-          <p 
-            className="text-[26px] sm:text-[32px] font-bold leading-[1.7] text-stone-100 tracking-tight whitespace-pre-line break-words"
-            style={{ 
-              textWrap: 'balance',
-              // ✨ ไฮไลต์แบบใหม่: ปรับให้ดูเหมือนขีดปากกา Marker จริงๆ ✨
-              backgroundImage: 'linear-gradient(180deg, transparent 65%, rgba(37, 99, 235, 0.3) 65%)',
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: '100% 100%',
-              display: 'inline',
-              padding: '2px 0',
-              boxDecorationBreak: 'clone',
-              WebkitBoxDecorationBreak: 'clone',
-            }}
-          >
-            {/* 🚨 จุดตาย: ต้องใส่ .replaceAll เพื่อแปลง \n เป็นการขึ้นบรรทัดใหม่จริงๆ 🚨 */}
-            {finalQuote.replaceAll("\\n", "\n")}
-          </p>
+        {/* ส่วนคำคม: Algorithm การเรนเดอร์ Optimized บรรทัด */}
+        <div className="w-full max-w-[95%] px-2 flex flex-col items-center gap-2.5 sm:gap-3">
+          {finalQuote.replace(/\\n/g, '\n').split('\n').map((line, idx) => {
+            if (!line.trim()) return null;
+            return (
+              <span 
+                key={idx}
+                className="text-[22px] sm:text-[26px] font-bold leading-normal text-stone-100 tracking-tight text-center break-words drop-shadow-md"
+                style={{ 
+                  backgroundImage: 'linear-gradient(180deg, transparent 60%, rgba(37, 99, 235, 0.4) 60%)',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '100% 100%',
+                  padding: '0 6px', // เพิ่มพื้นที่ซ้ายขวาให้พื้นหลังนิดหน่อย
+                }}
+              >
+                {line.trim()}
+              </span>
+            );
+          })}
         </div>
 
         {/* จุดคั่นกลางมินิมอล */}
-        <div className="flex gap-1.5 opacity-20">
+        <div className="flex gap-1.5 opacity-20 drop-shadow-sm">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
           <div className="w-1.5 h-1.5 rounded-full bg-stone-500"></div>
           <div className="w-1.5 h-1.5 rounded-full bg-stone-500"></div>
         </div>
 
-        {/* แท็กคำศัพท์: แก้ปัญหาคำแยกบรรทัด (เช่น เข็ม-นาฬิกา) */}
-        <div className="flex flex-wrap justify-center items-center gap-2.5">
+        {/* แท็กคำศัพท์: Glow Effect ตามสีอารมณ์ */}
+        <div className="flex flex-wrap justify-center items-center gap-3">
           {collectedWords.map((w, i) => (
             <span 
               key={i} 
-              className={`text-[11px] font-bold px-5 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-lg whitespace-nowrap ${getActiveThemeClasses()}`}
+              className={`text-[11px] font-bold px-5 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md whitespace-nowrap ${getActiveThemeClasses()}`}
+              style={{
+                boxShadow: `0 8px 15px -3px ${playerMood ? moodOptions.find(m => m.id === playerMood.id)?.theme.split(" ")[2].replace("text-", "rgba(").replace("-600", ", 0.2)") || "rgba(37, 99, 235, 0.2)" : "rgba(37, 99, 235, 0.2)"}` // 💡 เพิ่มเงาเรืองแสงอ่อนๆ
+              }}
             >
               # {w}
             </span>
@@ -382,15 +531,18 @@ export default function SwipeQuoteApp() {
         </div>
       </div>
 
-      {/* ลายน้ำแบรนด์ คมสัดสัด */}
-      <div className="absolute bottom-10 flex flex-col items-center gap-2 opacity-30">
-        <div className="text-[9px] font-black tracking-[0.4em] text-stone-500 uppercase">
+      {/* ลายน้ำแบรนด์ คมสัดสัด - ปรับปรุงความชัดเจนและตำแหน่ง */}
+      <div className="absolute bottom-8 flex flex-col items-center gap-1.5 opacity-40">
+        <div className="text-[9px] font-black tracking-[0.4em] text-stone-500 uppercase drop-shadow-sm">
           KHOMSATSAT <span className="text-blue-500/50">×</span> UPSKILL WITH FUII
+        </div>
+        <div className="text-[10px] font-medium tracking-wider text-stone-500">
+          {timestamp}
         </div>
       </div>
     </div>
     
-    {/* === โซนปุ่มควบคุม (UI) === */}
+    {/* === โซนปุ่มควบคุม (UI) - ปรับจูนให้ดูแน่นขึ้น === */}
     <div className="p-6 pb-8 bg-stone-950/90 backdrop-blur-xl border-t border-stone-800/50 flex flex-col gap-3 shrink-0">
       
       <button 
@@ -405,7 +557,7 @@ export default function SwipeQuoteApp() {
       <div className="grid grid-cols-2 gap-3">
         <button 
           onClick={resetApp} 
-          className="py-3.5 bg-stone-800 text-stone-400 font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 hover:bg-stone-700"
+          className="py-3.5 bg-stone-800 text-stone-400 font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 hover:bg-stone-700 active:scale-95 transition-all"
         >
           <RefreshCcw size={15}/> สุ่มใหม่
         </button>
@@ -414,7 +566,7 @@ export default function SwipeQuoteApp() {
           href="https://lin.ee/rQawKUM" 
           target="_blank"
           rel="noopener noreferrer"
-          className="py-3.5 bg-blue-600 text-white font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-blue-900/20"
+          className="py-3.5 bg-blue-600 text-white font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-blue-900/20 transition-all"
         >
           <Heart size={15} className="fill-current"/> 
           ติดตามอัพสกิลกับฟุ้ย
