@@ -322,7 +322,7 @@ export default function SwipeQuoteApp() {
             <div className="relative z-30 flex flex-col items-center -translate-y-8">
               
               {/* กล่องโลโก้แบบ "ขอบจางหาย" */}
-              <div className="relative pointer-events-none p-12 flex flex-col items-center justify-center w-[350px] h-[250px]">
+              <div className="relative pointer-events-none p-12 flex flex-col items-center justify-center w-[350px] h-[220px]">
                 
                 <div className="absolute inset-0 bg-white/95 blur-3xl rounded-full"></div>
 
