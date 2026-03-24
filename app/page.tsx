@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react"; 
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, Check, RefreshCcw, Quote, Download, Loader2, Heart } from "lucide-react";
@@ -323,6 +324,10 @@ export default function SwipeQuoteApp() {
           เลือกสิ่งที่ "ทัช" ในใจ ให้เป็นคำคมเฉพาะคุณ
         </p>
       </div>
+      {/* 💡 ปุ่มกดไปดู Gallery เพิ่มตรงนี้ */}
+    <Link href="/gallery" className="relative z-30 mt-6 px-6 py-2.5 bg-stone-900 text-white rounded-full text-[12px] font-bold tracking-wide shadow-lg hover:bg-stone-800 hover:scale-105 transition-all flex items-center gap-2">
+      ดูแกลเลอรีคำคม <ChevronRight size={14} />
+    </Link>
     </div>
 
     <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md">
