@@ -109,32 +109,32 @@ const floatingAnimation = (delay: number, duration: number = 6): any => ({
 
 const loadingPhrases = [
   "กำลังตกผลึกความรู้สึกของคุณ...",
-  "บางครั้งคำตอบที่ดีที่สุด ซ่อนอยู่ในความรู้สึกเล็กๆ...",
+  "บางครั้งคำตอบที่ดีที่สุด ก็ซ่อนในความรู้สึกเล็กๆ...",
   "จงใช้ความรู้สึกนี้ เป็นเข็มทิศของวันพรุ่งนี้...",
   "กำลังประกอบร่างถ้อยคำ เพื่อคุณคนเดียว..."
 ];
-// --- Helper Component สำหรับ Bubble (อัปเกรด Glow Effect) ---
+// --- Helper Component สำหรับ Bubble ---
+// 💡 ตรงนี้ต้องมีคำว่า index ด้วย
 const Circle = ({ mood, pos, delay, index, onStart }: any) => {
-  // 💡 สร้างฟังก์ชันคืนค่าทั้งสีขอบและสีเงาเรืองแสง
-  const getThemeColors = (id: string) => {
+ const getThemeColors = (id: string) => {
     const themes: Record<string, { border: string, shadow: string }> = {
-      happy: { border: "#facc15", shadow: "rgba(250, 204, 21, 0.3)" },     // Yellow
-      sad: { border: "#60a5fa", shadow: "rgba(96, 165, 250, 0.3)" },       // Blue
-      angry: { border: "#ef4444", shadow: "rgba(239, 68, 68, 0.3)" },      // Red
-      fear: { border: "#a855f7", shadow: "rgba(168, 85, 247, 0.3)" },      // Purple
-      love: { border: "#ec4899", shadow: "rgba(236, 72, 153, 0.3)" },      // Pink
-      lonely: { border: "#78716c", shadow: "rgba(120, 113, 108, 0.2)" },   // Stone
-      hope: { border: "#34d399", shadow: "rgba(52, 211, 153, 0.3)" },      // Emerald
-      confused: { border: "#818cf8", shadow: "rgba(129, 140, 248, 0.3)" }, // Indigo
-      apathetic: { border: "#94a3b8", shadow: "rgba(148, 163, 184, 0.2)" },// Slate
-      exhausted: { border: "#fb923c", shadow: "rgba(251, 146, 60, 0.3)" }  // Orange
+      happy: { border: "#facc15", shadow: "rgba(250, 204, 21, 0.3)" },     
+      sad: { border: "#60a5fa", shadow: "rgba(96, 165, 250, 0.3)" },       
+      angry: { border: "#ef4444", shadow: "rgba(239, 68, 68, 0.3)" },      
+      fear: { border: "#a855f7", shadow: "rgba(168, 85, 247, 0.3)" },      
+      love: { border: "#ec4899", shadow: "rgba(236, 72, 153, 0.3)" },      
+      lonely: { border: "#78716c", shadow: "rgba(120, 113, 108, 0.2)" },   
+      hope: { border: "#34d399", shadow: "rgba(52, 211, 153, 0.3)" },      
+      confused: { border: "#818cf8", shadow: "rgba(129, 140, 248, 0.3)" }, 
+      apathetic: { border: "#94a3b8", shadow: "rgba(148, 163, 184, 0.2)" },
+      exhausted: { border: "#fb923c", shadow: "rgba(251, 146, 60, 0.3)" }  
     };
     return themes[id] || { border: "#e5e7eb", shadow: "rgba(0,0,0,0.05)" };
   };
 
   const theme = getThemeColors(mood.id);
-  // สุ่มความเร็วลอยให้แต่ละลูกไม่เท่ากัน (ระหว่าง 5-8 วินาที)
-  const duration = 5 + (index % 4); 
+  // 💡 เอา index มาคำนวณความเร็วให้แต่ละลูกลอยไม่เท่ากัน
+  const duration = 5 + ((index || 0) % 4); 
 
   return (
     <motion.button 
@@ -143,7 +143,7 @@ const Circle = ({ mood, pos, delay, index, onStart }: any) => {
       className={`absolute ${pos} w-[110px] h-[110px] rounded-full border-[2.5px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all bg-white/90 backdrop-blur-sm shrink-0 z-20 hover:scale-105`}
       style={{ 
         borderColor: theme.border,
-        boxShadow: `0 10px 25px -5px ${theme.shadow}, 0 8px 10px -6px ${theme.shadow}` // 💡 เพิ่มเงาเรืองแสง
+        boxShadow: `0 10px 25px -5px ${theme.shadow}, 0 8px 10px -6px ${theme.shadow}`
       }}
     >
       <span className="text-5xl mb-0.5 drop-shadow-sm">{mood.icon}</span>
@@ -297,44 +297,61 @@ export default function SwipeQuoteApp() {
     <div className={`min-h-[100dvh] bg-stone-100 flex flex-col items-center justify-center sm:p-4 ${kanit.className} overflow-hidden`}>
       <div className="w-full max-w-md bg-white shadow-2xl overflow-hidden h-[100dvh] sm:h-[850px] flex flex-col relative sm:rounded-[2.5rem] sm:border-[4px] sm:border-stone-900">
         
-        {/* === 1. START SCREEN === */}
-   {/* === 1. START SCREEN === */}
-{gameState === "start" && (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-6 text-center relative bg-stone-50 h-full w-full overflow-hidden">
-    
-    {/* 💡 เพิ่มลาย Dot Grid จางๆ สไตล์ Modern Web */}
-    <div className="absolute inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
+ {/* === 1. START SCREEN === */}
+        {gameState === "start" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-6 text-center relative bg-stone-50 h-full w-full overflow-hidden">
+            
+            {/* ลายจุด Polkadot ฉากหลัง */}
+            <div className="absolute inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
 
-    <div className="absolute inset-0 w-full h-full z-10" style={{ opacity: isMounted ? 1 : 0 }}>
-      {isMounted && randomizedMoods.map((mood, index) => (
-        <Circle key={mood.id} mood={mood} pos={safePositions[index]} delay={index * 0.4} index={index} onStart={startGame} />
-      ))}
-    </div>
+         {/* กลุ่มวงกลมอารมณ์ */}
+<div className="absolute inset-0 w-full h-full z-10" style={{ opacity: isMounted ? 1 : 0 }}>
+  {isMounted && randomizedMoods.map((mood, idx) => (
+    <Circle 
+      key={mood.id} 
+      mood={mood} 
+      pos={safePositions[idx]} 
+      delay={idx * 0.4} 
+      index={idx} 
+      onStart={startGame} 
+    />
+  ))}
+</div>
 
-    {/* โลโก้ตรงกลาง มีแสงออร่าสีขาวข้างหลัง */}
-    <div className="relative z-30 pointer-events-none flex flex-col items-center justify-center w-[250px] h-[250px]">
-       {/* 💡 ออร่าสีขาวรองพื้นโลโก้ */}
-      <div className="absolute inset-0 bg-white/70 blur-2xl rounded-full"></div>
-      
-      <div className="relative z-10">
-        <h1 className="text-6xl font-black mb-1 leading-tight tracking-tighter text-stone-900 drop-shadow-sm">
-          {"คมสัด"}<span className="text-blue-600">สัด</span>
-        </h1>
-        <p className="text-stone-500 text-[13px] font-medium tracking-wide px-1">
-          เลือกสิ่งที่ "ทัช" ในใจ ให้เป็นคำคมเฉพาะคุณ
-        </p>
-      </div>
-      {/* 💡 ปุ่มกดไปดู Gallery เพิ่มตรงนี้ */}
-    <Link href="/gallery" className="relative z-30 mt-6 px-6 py-2.5 bg-stone-900 text-white rounded-full text-[12px] font-bold tracking-wide shadow-lg hover:bg-stone-800 hover:scale-105 transition-all flex items-center gap-2">
-      ดูแกลเลอรีคำคม <ChevronRight size={14} />
-    </Link>
-    </div>
+           {/* 💡 เติม -translate-y-8 ตรงนี้ เพื่อยกทั้งชุด (โลโก้+ปุ่ม) ให้ลอยขึ้นไปด้านบนอีกนิด */}
+            <div className="relative z-30 flex flex-col items-center -translate-y-8">
+              
+              {/* กล่องโลโก้แบบ "ขอบจางหาย" */}
+              <div className="relative pointer-events-none p-12 flex flex-col items-center justify-center w-[350px] h-[250px]">
+                
+                <div className="absolute inset-0 bg-white/95 blur-3xl rounded-full"></div>
 
-    <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md">
-      Khomsatsat x Upskill with Fuii
-    </p>
-  </motion.div>
-)}
+                <div className="relative z-10 flex flex-col items-center">
+                  <h1 className="text-6xl font-black mb-1.5 leading-tight tracking-tighter text-stone-900 drop-shadow-sm">
+                    {"คมสัด"}<span className="text-blue-600">สัด</span>
+                  </h1>
+                  <p className="text-stone-500 text-[13px] font-medium tracking-wide px-1 drop-shadow-sm">
+                    เลือกสิ่งที่ "ทัช" ในใจ ให้เป็นคำคมเฉพาะคุณ
+                  </p>
+                </div>
+                
+              </div>
+
+              {/* ปุ่มไป Gallery (ระยะห่างจากโลโก้ยังเป๊ะเหมือนเดิม) */}
+              <Link 
+                href="/gallery" 
+                className="-mt-12 px-6 py-2.5 relative z-50 bg-stone-900 text-white rounded-full text-[13px] font-bold tracking-wide shadow-[0_10px_20px_rgba(0,0,0,0.15)] hover:bg-stone-800 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+              >
+                ดูแกลเลอรีคำคม <ChevronRight size={16} />
+              </Link>
+
+            </div>
+
+            <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md pointer-events-none">
+              Khomsatsat x Upskill with Fuii
+            </p>
+          </motion.div>
+        )}
 
      {/* === 2. SWIPING SCREEN (แก้ไขให้สวยขึ้น) === */}
 {gameState === "swiping" && deck.length > 0 && (
