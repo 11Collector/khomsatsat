@@ -163,56 +163,74 @@ export default function GalleryPage() {
     }
   };
 
-// 💡 ระบบ Download รูปภาพ (เวอร์ชันการ์ดเป๊ะ 1:1 ตามเนื้อหา ✨)
-  const handleDownloadImage = async (quoteId: string) => {
-    try {
-      setDownloadingId(quoteId);
-      const element = document.getElementById(`quote-card-${quoteId}`);
-      if (!element) return;
-      
-      // 1. เตรียมตัวการ์ด: ปรับให้หดตัวตามเนื้อหาจริงและเอาเอฟเฟกต์หน้าเว็บออกชั่วคราว
-      const originalHeight = element.style.height;
-      const originalMinHeight = element.style.minHeight;
-      const originalTransition = element.style.transition;
-      
-      element.style.height = 'auto';
-      element.style.minHeight = '0';
-      element.style.transition = 'none';
-      element.classList.remove('hover:scale-[1.02]');
-      
-      // 2. สั่ง Capture โดยเน้นที่ตัว Element เพียวๆ
-      const dataUrl = await toPng(element, { 
-        quality: 1.0, 
-        pixelRatio: 3, // ชัดระดับ 4K
-        // ❌ เอา padding และ backgroundColor ด้านนอกออกเพื่อให้ได้ขนาดเท่าการ์ดเป๊ะๆ
-        style: { 
-          transform: 'scale(1)',
-          margin: '0',
-          borderRadius: '2.5rem', // คืนค่าความมนให้การ์ดตอนเซฟ
-        },
-        filter: (node) => {
-          // ซ่อนปุ่มกดและ UI ที่ไม่ต้องการให้ติดไปในรูป
-          if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') return false;
-          return true;
+// 💡 ระบบ Download รูปภาพ (เวอร์ชันแก้ไขเรื่องสีพื้นหลังและขนาดเป๊ะ 1:1)
+const handleDownloadImage = async (quoteId: string) => {
+  const element = document.getElementById(`quote-card-${quoteId}`);
+  if (!element) return;
+
+  try {
+    setDownloadingId(quoteId);
+
+    // 1. ดึงค่าสีพื้นหลังที่แสดงผลอยู่จริงๆ (จัดการเรื่อง Dark Mode/Variable)
+    const computedStyle = window.getComputedStyle(element);
+    const actualBgColor = computedStyle.backgroundColor;
+
+    // 2. เตรียมตัวการ์ด: เก็บค่าเดิมไว้ก่อน
+    const originalStyles = {
+      height: element.style.height,
+      minHeight: element.style.minHeight,
+      transition: element.style.transition,
+      transform: element.style.transform,
+    };
+
+    // ปรับให้หดตัวตามเนื้อหาจริงและเอาเอฟเฟกต์ออกชั่วคราว
+    element.style.height = 'auto';
+    element.style.minHeight = '0';
+    element.style.transition = 'none';
+    element.style.transform = 'none';
+    element.classList.remove('hover:scale-[1.02]');
+
+    // 3. สั่ง Capture
+    const dataUrl = await toPng(element, {
+      quality: 1.0,
+      pixelRatio: 3, // ชัดระดับ 4K
+      backgroundColor: actualBgColor === 'rgba(0, 0, 0, 0)' ? '#ffffff' : actualBgColor, // ถ้าพื้นหลังโปร่งใส ให้ใส่สีขาวแทน
+      cacheBust: true, // ป้องกันปัญหาเรื่องรูปหรือ Font ไม่โหลด
+      style: {
+        transform: 'scale(1)',
+        margin: '0',
+        borderRadius: '2.5rem', // คืนค่าความมนให้การ์ด
+      },
+      filter: (node) => {
+        // ซ่อนปุ่มกดและ UI ที่มี data-html2canvas-ignore
+        if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') {
+          return false;
         }
-      });
-      
-      // 3. คืนค่าเดิมให้ UI หน้าเว็บ
-      element.style.height = originalHeight;
-      element.style.minHeight = originalMinHeight;
-      element.style.transition = originalTransition;
-      element.classList.add('hover:scale-[1.02]');
-      
-      const link = document.createElement('a');
-      link.download = `khomsatsat-${quoteId}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (error) {
-      console.error("Error saving image:", error);
-    } finally {
-      setDownloadingId(null);
-    }
-  };
+        return true;
+      },
+    });
+
+    // 4. คืนค่าเดิมให้ UI หน้าเว็บ
+    element.style.height = originalStyles.height;
+    element.style.minHeight = originalStyles.minHeight;
+    element.style.transition = originalStyles.transition;
+    element.style.transform = originalStyles.transform;
+    element.classList.add('hover:scale-[1.02]');
+
+    // 5. ทำการดาวน์โหลด
+    const link = document.createElement('a');
+    link.download = `khomsatsat-${quoteId}.png`;
+    link.href = dataUrl;
+    link.click();
+
+  } catch (error) {
+    console.error("Error saving image:", error);
+    // กรณี Error อย่าลืมคืนค่า Class ให้ UI ด้วย
+    element.classList.add('hover:scale-[1.02]');
+  } finally {
+    setDownloadingId(null);
+  }
+};
 
   return (
     // 💡 1. เปลี่ยนโทนสีหลักเป็นสว่าง (bg-stone-50)
