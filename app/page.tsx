@@ -110,7 +110,7 @@ const loadingPhrases = [
   "กำลังจับความรู้สึกของคุณตอนนี้...",
   "รอหน่อยนะ... กำลังหาคำที่ทัชใจให้ ✨",
   "ทุกความรู้สึกมีเหตุผลในแบบของมัน",
-  "เตรียมแคปได้เลย ประโยคนี้เพื่อแก 📸"
+  "เตรียมแคปได้เลย ประโยคนี้เพื่อคุณ 📸"
 ];
 // --- Helper Component สำหรับ Bubble ---
 // 💡 ตรงนี้ต้องมีคำว่า index ด้วย
@@ -351,7 +351,7 @@ export default function SwipeQuoteApp() {
             </div>
 
             <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md pointer-events-none">
-              Created By <span className="text-blue-600 mx-1">×</span> อัพสกิลกับฟุ้ย
+              Created By  อัพสกิลกับฟุ้ย
             </p>
           </motion.div>
         )}
