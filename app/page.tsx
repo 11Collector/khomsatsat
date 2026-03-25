@@ -652,36 +652,29 @@ export default function SwipeQuoteApp() {
           <Quote size={28} className="text-blue-400" />
         </div>
 
-       {/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
+{/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
 <div className="w-full flex flex-col items-center gap-1.5 mt-2 px-1">
   {(finalQuote || "").replace(/\\n/g, '\n').split('\n').map((line, idx) => {
     if (!line.trim()) return null;
     return (
       <span 
         key={idx}
-        // 💡 แก้ไข 1: เปลี่ยนเงาตัวหนังสือให้เป็นสีดำเข้ม เพื่อตัดขอบให้ฟอนต์ขาวลอยเด่นขึ้นมา
-        className="text-[20px] sm:text-[24px] font-black leading-relaxed text-white tracking-wide text-center relative inline-block drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] max-w-full"
+        // 💡 แก้ไข: ปรับค่า drop-shadow จาก [0_3px_6px_rgba(0,0,0,0.9)]
+        // มาเป็น [0_4px_12px_rgba(0,0,0,1)] เพื่อให้เงาหนาขึ้น กระจายกว้างขึ้น และดำสนิท (rgba(0,0,0,1))
+        className="text-[20px] sm:text-[24px] font-black leading-relaxed text-white tracking-wide text-center relative inline-block drop-shadow-[0_4px_12px_rgba(0,0,0,1)] max-w-full"
         style={{ wordBreak: 'break-word' }}
       >
         <span className="relative z-10 px-2 block">{line.trim()}</span>
         
         {/* ไฮไลท์สีด้านหลังข้อความ */}
         <span 
-          // 💡 แก้ไข 2: เพิ่ม Opacity ให้เข้มขึ้นเป็น 80
           className="absolute bottom-1.5 left-0 w-full h-[35%] opacity-80 z-0 rounded-sm -rotate-1"
           style={{
-            // 💡 แก้ไข 3: ปรับโค้ดสีให้เป็นเฉดที่ "เข้มและลึกขึ้น" (Tailwind 600 shades) ตัดกับสีขาวได้ดีมาก
             backgroundColor: playerMood ? ({
-              happy: "#ca8a04",    // เหลืองเข้ม (Yellow 600)
-              sad: "#2563eb",      // น้ำเงินเข้ม (Blue 600)
-              angry: "#dc2626",    // แดงเข้ม (Red 600)
-              fear: "#9333ea",     // ม่วงเข้ม (Purple 600)
-              love: "#db2777",     // ชมพูเข้ม (Pink 600)
-              lonely: "#57534e",   // เทาหินทึบ (Stone 600)
-              hope: "#059669",     // เขียวเข้ม (Emerald 600)
-              confused: "#4f46e5", // ครามเข้ม (Indigo 600)
-              apathetic: "#475569",// เทาอมฟ้าเข้ม (Slate 600)
-              exhausted: "#ea580c" // ส้มเข้ม (Orange 600)
+              happy: "#ca8a04", sad: "#2563eb", angry: "#dc2626", 
+              fear: "#9333ea", love: "#db2777", lonely: "#57534e", 
+              hope: "#059669", confused: "#4f46e5", apathetic: "#475569", 
+              exhausted: "#ea580c"
             })[playerMood.id] || "#2563eb" : "#2563eb"
           }}
         ></span>
