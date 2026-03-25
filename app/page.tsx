@@ -439,10 +439,18 @@ export default function SwipeQuoteApp() {
                     เอาคำนี้
                   </motion.div>
                   
-                  {/* ตัวคำ (จัด Font ให้เท่ขึ้น) */}
-                  <h3 className="text-[34px] sm:text-[42px] font-black text-stone-900 text-center leading-tight tracking-tighter drop-shadow-sm px-2">
-                    {deck[currentCardIndex]}
-                  </h3>
+                 {/* ตัวคำ (จัด Font ให้เท่ขึ้น และแก้ปัญหาคำฉีก) */}
+<h3 
+  className={`font-black text-stone-900 text-center leading-tight tracking-tighter drop-shadow-sm px-2 whitespace-nowrap transition-all duration-300 ${
+    deck[currentCardIndex]?.length > 10 
+      ? 'text-[26px] sm:text-[32px]' // ถ้าคำยาวมาก (เช่น ความว่างเปล่า) ให้ฟอนต์เล็กลง
+      : deck[currentCardIndex]?.length > 7 
+        ? 'text-[30px] sm:text-[36px]' // ถ้าคำยาวปานกลาง (เช่น หายใจไม่ออก)
+        : 'text-[34px] sm:text-[42px]' // ถ้าคำสั้นปกติ ฟอนต์ใหญ่สะใจ
+  }`}
+>
+  {deck[currentCardIndex]}
+</h3>
                 </motion.div>
               </AnimatePresence>
               
@@ -701,7 +709,7 @@ export default function SwipeQuoteApp() {
           onClick={resetApp} 
           className="py-3.5 bg-stone-100 text-stone-600 font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 hover:bg-stone-200 active:scale-95 transition-all border border-stone-200"
         >
-          <RefreshCcw size={15}/> สุ่มใหม่
+          <RefreshCcw size={15}/> สร้างคำคมใหม่
         </button>
 
         <a 
