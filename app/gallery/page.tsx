@@ -27,14 +27,14 @@ const moodCategories = [
   { id: "exhausted", icon: "🫠", title: "เหนื่อยล้า" }
 ];
 
-// ฟังก์ชันผู้ช่วยสำหรับดึงสีตามอารมณ์ (ใช้ทำสี Tag และเงา)
+// ฟังก์ชันดึงสีตามอารมณ์ (สำหรับเอฟเฟกต์เรืองแสง)
 const getMoodColor = (moodTitle: string) => {
   const map: Record<string, string> = {
     "มีความสุข": "#facc15", "เศร้าหมอง": "#60a5fa", "โกรธมาก": "#ef4444",
     "หวาดกลัว": "#a855f7", "คลั่งรัก": "#ec4899", "โดดเดี่ยว": "#78716c",
     "เปี่ยมหวัง": "#34d399", "สับสน": "#818cf8", "เฉยเมย": "#94a3b8", "เหนื่อยล้า": "#fb923c"
   };
-  return map[moodTitle] || "#3b82f6"; // Default สีฟ้า
+  return map[moodTitle] || "#3b82f6";
 };
 
 interface QuoteData {
@@ -163,95 +163,88 @@ export default function GalleryPage() {
     }
   };
 
-// 💡 ระบบ Download รูปภาพ (เวอร์ชันแก้ไขเรื่องสีพื้นหลังและขนาดเป๊ะ 1:1)
-const handleDownloadImage = async (quoteId: string) => {
-  const element = document.getElementById(`quote-card-${quoteId}`);
-  if (!element) return;
+  // 💡 ระบบ Download แบบปรับจูนให้เข้ากับ Dark Mode (เซฟแล้วสีทึบเป๊ะ)
+  const handleDownloadImage = async (quoteId: string) => {
+    const element = document.getElementById(`quote-card-${quoteId}`);
+    if (!element) return;
 
-  try {
-    setDownloadingId(quoteId);
+    try {
+      setDownloadingId(quoteId);
 
-    // 1. ดึงค่าสีพื้นหลังที่แสดงผลอยู่จริงๆ (จัดการเรื่อง Dark Mode/Variable)
-    const computedStyle = window.getComputedStyle(element);
-    const actualBgColor = computedStyle.backgroundColor;
+      const computedStyle = window.getComputedStyle(element);
+      const actualBgColor = computedStyle.backgroundColor;
 
-    // 2. เตรียมตัวการ์ด: เก็บค่าเดิมไว้ก่อน
-    const originalStyles = {
-      height: element.style.height,
-      minHeight: element.style.minHeight,
-      transition: element.style.transition,
-      transform: element.style.transform,
-    };
+      const originalStyles = {
+        height: element.style.height,
+        minHeight: element.style.minHeight,
+        transition: element.style.transition,
+        transform: element.style.transform,
+      };
 
-    // ปรับให้หดตัวตามเนื้อหาจริงและเอาเอฟเฟกต์ออกชั่วคราว
-    element.style.height = 'auto';
-    element.style.minHeight = '0';
-    element.style.transition = 'none';
-    element.style.transform = 'none';
-    element.classList.remove('hover:scale-[1.02]');
+      element.style.height = 'auto';
+      element.style.minHeight = '0';
+      element.style.transition = 'none';
+      element.style.transform = 'none';
+      element.classList.remove('hover:scale-[1.02]');
 
-    // 3. สั่ง Capture
-    const dataUrl = await toPng(element, {
-      quality: 1.0,
-      pixelRatio: 3, // ชัดระดับ 4K
-      backgroundColor: actualBgColor === 'rgba(0, 0, 0, 0)' ? '#ffffff' : actualBgColor, // ถ้าพื้นหลังโปร่งใส ให้ใส่สีขาวแทน
-      cacheBust: true, // ป้องกันปัญหาเรื่องรูปหรือ Font ไม่โหลด
-      style: {
-        transform: 'scale(1)',
-        margin: '0',
-        borderRadius: '2.5rem', // คืนค่าความมนให้การ์ด
-      },
-      filter: (node) => {
-        // ซ่อนปุ่มกดและ UI ที่มี data-html2canvas-ignore
-        if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') {
-          return false;
-        }
-        return true;
-      },
-    });
+      const dataUrl = await toPng(element, {
+        quality: 1.0,
+        pixelRatio: 3, 
+        // 💡 บังคับให้พื้นหลังเป็นสี slate-900 (สีทึบ) เสมอเวลาแบคกราวด์อ่านค่าเป็นใส
+        backgroundColor: actualBgColor === 'rgba(0, 0, 0, 0)' ? '#0f172a' : actualBgColor, 
+        cacheBust: true,
+        style: {
+          transform: 'scale(1)',
+          margin: '0',
+          borderRadius: '2.5rem', 
+        },
+        filter: (node) => {
+          if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') {
+            return false;
+          }
+          return true;
+        },
+      });
 
-    // 4. คืนค่าเดิมให้ UI หน้าเว็บ
-    element.style.height = originalStyles.height;
-    element.style.minHeight = originalStyles.minHeight;
-    element.style.transition = originalStyles.transition;
-    element.style.transform = originalStyles.transform;
-    element.classList.add('hover:scale-[1.02]');
+      element.style.height = originalStyles.height;
+      element.style.minHeight = originalStyles.minHeight;
+      element.style.transition = originalStyles.transition;
+      element.style.transform = originalStyles.transform;
+      element.classList.add('hover:scale-[1.02]');
 
-    // 5. ทำการดาวน์โหลด
-    const link = document.createElement('a');
-    link.download = `khomsatsat-${quoteId}.png`;
-    link.href = dataUrl;
-    link.click();
+      const link = document.createElement('a');
+      link.download = `khomsatsat-${quoteId}.png`;
+      link.href = dataUrl;
+      link.click();
 
-  } catch (error) {
-    console.error("Error saving image:", error);
-    // กรณี Error อย่าลืมคืนค่า Class ให้ UI ด้วย
-    element.classList.add('hover:scale-[1.02]');
-  } finally {
-    setDownloadingId(null);
-  }
-};
+    } catch (error) {
+      console.error("Error saving image:", error);
+      element.classList.add('hover:scale-[1.02]');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
-    // 💡 1. เปลี่ยนโทนสีหลักเป็นสว่าง (bg-stone-50)
-    <div className={`min-h-[100dvh] bg-stone-50 text-stone-900 ${kanit.className} overflow-x-hidden relative flex flex-col`}>
+    // 💡 1. ปรับ Theme หลักเป็น Dark Slate (bg-slate-950)
+    <div className={`min-h-[100dvh] bg-slate-950 text-slate-100 ${kanit.className} overflow-x-hidden relative flex flex-col`}>
       
-      {/* 💡 2. ลายจุด Polkadot คุมโทนทั้งหน้า */}
-      <div className="fixed inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none"></div>
+      {/* 💡 2. ลายจุด Polkadot โทนดาร์ก */}
+      <div className="fixed inset-0 z-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none"></div>
 
-      {/* 💡 3. Header กระจกใส (Glassmorphism) */}
-      <header className="pt-12 pb-4 flex flex-col items-center relative z-20 bg-white/70 backdrop-blur-xl sticky top-0 border-b border-white shadow-sm">
+      {/* 💡 3. Header กระจกดำใส (Dark Glassmorphism) */}
+      <header className="pt-12 pb-4 flex flex-col items-center relative z-20 bg-slate-900/60 backdrop-blur-xl sticky top-0 border-b border-slate-800 shadow-sm">
         <div className="px-6 w-full flex items-center justify-center relative mb-4">
-          <Link href="/" className="absolute left-6 p-2.5 bg-white rounded-full hover:bg-stone-100 shadow-sm transition-colors border border-stone-100">
-            <ChevronLeft size={20} className="text-stone-700" />
+          <Link href="/" className="absolute left-6 p-2.5 bg-slate-800 rounded-full hover:bg-slate-700 shadow-sm transition-colors border border-slate-700">
+            <ChevronLeft size={20} className="text-slate-300" />
           </Link>
           <div className="text-center">
-            <h1 className="text-4xl font-black tracking-tight text-stone-900 drop-shadow-sm">แกลเลอรี<span className="text-blue-600">ทัชใจ</span></h1>
-            <p className="text-[12px] text-stone-500 mt-0.5 font-bold tracking-wide">รวมคำคม ความรู้สึกที่ถูกกลั่นกรอง</p>
+            <h1 className="text-4xl font-black tracking-tight text-white drop-shadow-sm">แกลเลอรี<span className="text-blue-500">ทัชใจ</span></h1>
+            <p className="text-[12px] text-slate-400 mt-0.5 font-bold tracking-wide">รวมคำคม ความรู้สึกที่ถูกกลั่นกรอง</p>
           </div>
         </div>
 
-        {/* 💡 4. ปุ่ม Filter สไตล์วัยรุ่น Pill Button */}
+        {/* 💡 4. ปุ่ม Filter โทนดาร์ก */}
         <div className="w-full overflow-x-auto pb-4 pt-2 hide-scrollbar">
           <div className="flex px-6 gap-2.5 w-max mx-auto">
             {moodCategories.map((cat) => {
@@ -262,8 +255,8 @@ const handleDownloadImage = async (quoteId: string) => {
                   onClick={() => setActiveFilter(cat.title)}
                   className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-[13px] font-bold transition-all active:scale-95 shadow-sm border-[2px] ${
                     isActive 
-                      ? 'bg-stone-900 text-white border-stone-900' 
-                      : 'bg-white text-stone-500 border-white hover:border-stone-200 hover:text-stone-800'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-[0_4px_15px_-3px_rgba(37,99,235,0.4)]' 
+                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500 hover:text-slate-200'
                   }`}
                 >
                   <span className="text-[14px]">{cat.icon}</span>
@@ -283,21 +276,21 @@ const handleDownloadImage = async (quoteId: string) => {
       <main className="max-w-6xl mx-auto px-6 py-10 flex-1 w-full flex flex-col items-center relative z-10">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 w-full">
-            <div className="w-16 h-16 border-4 border-stone-200 border-t-blue-500 rounded-full animate-spin mb-6 shadow-sm"></div>
-            <p className="text-sm font-black tracking-widest uppercase text-stone-400">Loading...</p>
+            <div className="w-16 h-16 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin mb-6 shadow-sm"></div>
+            <p className="text-sm font-black tracking-widest uppercase text-slate-500">Loading...</p>
           </div>
         ) : quotes.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-32 text-center w-full">
-            <span className="text-6xl mb-6 drop-shadow-sm">🍃</span>
-            <p className="text-stone-500 font-bold text-lg mb-2">ยังไม่มีคำคมในหมวดหมู่นี้</p>
-            <Link href="/" className="mt-2 px-6 py-2.5 bg-blue-600 text-white text-[13px] rounded-full font-bold shadow-lg hover:bg-blue-700 transition-colors">
+            <span className="text-6xl mb-6 drop-shadow-sm opacity-80">🍃</span>
+            <p className="text-slate-400 font-bold text-lg mb-2">ยังไม่มีคำคมในหมวดหมู่นี้</p>
+            <Link href="/" className="mt-2 px-6 py-2.5 bg-blue-600 text-white text-[13px] rounded-full font-bold shadow-lg shadow-blue-900/50 hover:bg-blue-500 transition-colors">
               ไปสร้างคำคมแรกกันเลย!
             </Link>
           </motion.div>
         ) : (
           <div className="w-full flex flex-col items-center">
             
-            {/* 💡 5. Grid การ์ด (Glass Card Aesthetic) */}
+            {/* 💡 5. Grid การ์ด (Dark Glass Card) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
               <AnimatePresence mode="popLayout">
                 {quotes.map((item, index) => {
@@ -314,58 +307,62 @@ const handleDownloadImage = async (quoteId: string) => {
                       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                       transition={{ delay: (index % FETCH_LIMIT) * 0.05 }}
                       key={item.id} 
-                      className="bg-white/80 backdrop-blur-xl border-[3px] border-white rounded-[2.5rem] p-8 sm:p-10 relative flex flex-col shadow-[0_20px_50px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] hover:scale-[1.02] transition-all duration-300 group overflow-hidden"
+                      // 💡 ใช้ bg-slate-900 และกำหนดสีกำกับไว้เพื่อให้ toPng เซฟได้ทึบแสง
+                      className="bg-slate-900 border-[2px] border-slate-700/50 rounded-[2.5rem] p-8 sm:p-10 relative flex flex-col shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)] hover:scale-[1.02] transition-all duration-300 group overflow-hidden"
+                      style={{ backgroundColor: '#0f172a' }} // slate-900
                     >
                       {/* แสง Glow หลังการ์ดจางๆ ตามสีอารมณ์ */}
                       <div 
-                        className="absolute inset-0 opacity-10 pointer-events-none transition-all duration-500 group-hover:opacity-20 blur-3xl"
-                        style={{ background: `radial-gradient(circle at top left, ${moodColor} 0%, transparent 70%)` }}
+                        className="absolute inset-0 opacity-10 pointer-events-none transition-all duration-500 group-hover:opacity-25 blur-[60px]"
+                        style={{ background: `radial-gradient(circle at top left, ${moodColor} 0%, transparent 60%)` }}
                       ></div>
 
-                      {/* ไอคอน Quote แต่งขอบ */}
-                      <div className="absolute top-6 left-6 bg-white p-3 rounded-full shadow-sm border-[2px] border-stone-50 rotate-[-10deg] z-10">
-                        <Quote size={20} className="text-stone-300" />
+                      {/* ไอคอน Quote โทนดาร์ก */}
+                      <div className="absolute top-6 left-6 bg-slate-800 p-3 rounded-full shadow-sm border-[2px] border-slate-700/50 rotate-[-10deg] z-10">
+                        <Quote size={20} className="text-blue-400" />
                       </div>
                       
-                 {/* 💡 ป้ายกำกับอารมณ์ (บนขวา) */}
+                      {/* 💡 ป้ายกำกับอารมณ์ (บนขวา) */}
                       <div className="flex justify-end mb-6 relative z-10" data-html2canvas-ignore="true">
-                        <span className="text-[11px] font-black tracking-wide bg-white px-4 py-1.5 rounded-full text-stone-600 shadow-sm border border-stone-100 flex items-center gap-1.5">
+                        <span className="text-[11px] font-black tracking-wide bg-slate-800 px-4 py-1.5 rounded-full text-slate-300 shadow-sm border border-slate-700 flex items-center gap-1.5">
                           {moodCategories.find(m => m.title === item.mood)?.icon} {item.mood || "ไม่ระบุ"}
                         </span>
                       </div>
 
-                      {/* 💡 ตัวคำคม (กลับมาเป็นตัวหนังสือคลีนๆ ไม่มีปาดสี) */}
-                      <p className="text-[18px] sm:text-[20px] font-black leading-relaxed text-stone-800 whitespace-pre-line my-4 grow relative z-10 text-center tracking-tight break-words px-2">
+                      {/* 💡 ตัวคำคม (เรืองแสงนิดๆ บนพื้นดำ) */}
+                      <p className="text-[18px] sm:text-[20px] font-black leading-relaxed text-white whitespace-pre-line my-4 grow relative z-10 text-center tracking-wide break-words px-2 drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)]">
                         {item.quote.replace(/\\n/g, '\n')}
                       </p>
 
                       <div className="flex flex-col gap-6 mt-6 relative z-10">
-                        {/* 💡 แท็กคำศัพท์: ล็อคไม่ให้คำตกบรรทัดด้วย whitespace-nowrap */}
+                        {/* 💡 แท็กคำศัพท์ โทนดาร์กทึบ */}
                         <div className="flex flex-wrap justify-center gap-2">
                           {item.words?.map((word, wIdx) => (
                             <span 
                               key={wIdx} 
-                              // 💡 เพิ่ม whitespace-nowrap ป้องกันคำยาวๆ ทะลักกรอบ
-                              className="text-[11px] font-extrabold px-3 py-1 rounded-full border bg-white shadow-sm whitespace-nowrap"
-                              style={{ color: moodColor, borderColor: `${moodColor}40` }}
+                              className="text-[11px] font-extrabold px-3 py-1 rounded-full border shadow-sm whitespace-nowrap bg-slate-800"
+                              style={{ color: moodColor, borderColor: `${moodColor}50`, backgroundColor: 'rgba(30,41,59,0.9)' }}
                             >
                               #{word}
                             </span>
                           ))}
                         </div>
                         
-                        {/* 💡 ลายน้ำแบรนด์ (เวลาแคปเจอร์จะติดไปด้วย) */}
-                        <div className="flex flex-col items-center gap-1 mt-2 opacity-50 pb-2">
-                          <div className="text-[8px] font-black tracking-[0.3em] text-stone-800 uppercase bg-white/60 px-3 py-1 rounded-full border border-white">
+                        {/* 💡 ลายน้ำแบรนด์ (Dark theme ทึบ) */}
+                        <div className="flex flex-col items-center gap-1 mt-2 pb-2">
+                          <div 
+                            className="text-[8px] font-black tracking-[0.3em] text-slate-300 uppercase px-3 py-1 rounded-full border border-slate-700/80"
+                            style={{ backgroundColor: '#1e293b' }} // slate-800 ทึบ
+                          >
                             CREATED BY <span className="text-blue-500 mx-1">×</span> อัพสกิลกับฟุ้ย
                           </div>
                         </div>
 
-                        {/* 💡 ปุ่ม Action (ถูก Ignore ตอนแคปเจอร์) */}
-                        <div className="flex items-center justify-between pt-5 border-t border-stone-200/60" data-html2canvas-ignore="true">
+                        {/* 💡 ปุ่ม Action (ปุ่มกดด้านล่างแบบดาร์ก) */}
+                        <div className="flex items-center justify-between pt-5 border-t border-slate-800/80" data-html2canvas-ignore="true">
                           <button 
                             onClick={() => handleLike(item.id)}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-full transition-all active:scale-90 font-bold text-[13px] shadow-sm border ${hasLiked ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-stone-100 text-stone-500 hover:text-red-400 hover:border-red-100'}`}
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-full transition-all active:scale-90 font-bold text-[13px] shadow-sm border ${hasLiked ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-red-400 hover:border-red-500/30'}`}
                           >
                             <Heart size={16} className={hasLiked ? "fill-current" : ""} />
                             <span>{item.likes || 0}</span>
@@ -375,13 +372,13 @@ const handleDownloadImage = async (quoteId: string) => {
                             <button 
                               onClick={() => handleDownloadImage(item.id)}
                               disabled={downloadingId === item.id}
-                              className="p-2.5 rounded-full transition-all bg-white border border-stone-100 text-stone-500 shadow-sm hover:text-stone-800 hover:bg-stone-50 active:scale-90 disabled:opacity-50"
+                              className="p-2.5 rounded-full transition-all bg-slate-800 border border-slate-700 text-slate-400 shadow-sm hover:text-white hover:bg-slate-700 active:scale-90 disabled:opacity-50"
                             >
-                              {downloadingId === item.id ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <Download size={16} />}
+                              {downloadingId === item.id ? <Loader2 size={16} className="animate-spin text-blue-400" /> : <Download size={16} />}
                             </button>
                             <button 
                               onClick={() => handleShare(item)}
-                              className={`p-2.5 rounded-full transition-all shadow-sm active:scale-90 border ${isCopied ? 'bg-green-50 border-green-100 text-green-500' : 'bg-white border-stone-100 text-stone-500 hover:text-blue-500 hover:border-blue-100'}`}
+                              className={`p-2.5 rounded-full transition-all shadow-sm active:scale-90 border ${isCopied ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-blue-400 hover:border-blue-500/30'}`}
                             >
                               {isCopied ? <CheckCircle size={16} /> : <Share2 size={16} />}
                             </button>
@@ -400,10 +397,10 @@ const handleDownloadImage = async (quoteId: string) => {
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 onClick={loadMoreQuotes}
                 disabled={loadingMore}
-                className="mt-14 px-8 py-3.5 bg-stone-900 shadow-xl shadow-stone-900/10 text-white font-bold rounded-full text-[14px] hover:bg-stone-800 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                className="mt-14 px-8 py-3.5 bg-blue-600 shadow-[0_8px_20px_-5px_rgba(37,99,235,0.4)] text-white font-bold rounded-full text-[14px] hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100 border border-blue-500"
               >
                 {loadingMore ? (
-                  <><Loader2 size={18} className="animate-spin text-stone-400" /> กำลังโหลดเพิ่ม...</>
+                  <><Loader2 size={18} className="animate-spin text-white/70" /> กำลังโหลดเพิ่ม...</>
                 ) : (
                   "โหลดคำคมเพิ่มเติม"
                 )}
@@ -414,12 +411,12 @@ const handleDownloadImage = async (quoteId: string) => {
         )}
       </main>
 
-      {/* 💡 6. Footer คลีนๆ สบายตา */}
-      <footer className="w-full py-10 mt-auto flex flex-col items-center justify-center relative z-10 bg-white/50 backdrop-blur-md border-t border-white">
-        <p className="text-[10px] text-stone-600 font-black uppercase tracking-[0.3em] drop-shadow-sm">
-          Created By <span className="text-blue-600 mx-1">×</span> อัพสกิลกับฟุ้ย
+      {/* 💡 6. Footer โทนดาร์ก */}
+      <footer className="w-full py-10 mt-auto flex flex-col items-center justify-center relative z-10 bg-slate-900/40 backdrop-blur-md border-t border-slate-800">
+        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] drop-shadow-sm">
+          Created By <span className="text-blue-500 mx-1">×</span> อัพสกิลกับฟุ้ย
         </p>
-        <p className="text-[10px] text-stone-400 font-medium tracking-wider mt-2">
+        <p className="text-[10px] text-slate-600 font-medium tracking-wider mt-2">
           © {new Date().getFullYear()} All rights reserved.
         </p>
       </footer>

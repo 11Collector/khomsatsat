@@ -299,62 +299,64 @@ export default function SwipeQuoteApp() {
   return (
     <div className={`min-h-[100dvh] bg-stone-100 flex flex-col items-center justify-center sm:p-4 ${kanit.className} overflow-hidden`}>
       <div className="w-full max-w-md bg-white shadow-2xl overflow-hidden h-[100dvh] sm:h-[850px] flex flex-col relative sm:rounded-[2.5rem] sm:border-[4px] sm:border-stone-900">
-        
 {/* === 1. START SCREEN === */}
-        {gameState === "start" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-6 text-center relative bg-stone-50 h-full w-full overflow-hidden">
-            
-         <Link 
-              href="/gallery" 
-              className="absolute top-8 left-1/2 -translate-x-1/2 z-50 px-6 py-2.5 bg-stone-900 text-white rounded-full text-[13px] font-bold tracking-wide shadow-lg hover:bg-stone-800 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              แกลเลอรีคำคม <ChevronRight size={14} />
-            </Link>
+{gameState === "start" && (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-6 text-center relative bg-stone-50 h-full w-full overflow-hidden">
+    
+    <Link 
+      href="/gallery" 
+      className="absolute top-8 left-1/2 -translate-x-1/2 z-50 px-6 py-2.5 bg-stone-900 text-white rounded-full text-[13px] font-bold tracking-wide shadow-lg hover:bg-stone-800 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+    >
+      แกลเลอรีคำคม <ChevronRight size={14} />
+    </Link>
 
-            {/* ลายจุด Polkadot ฉากหลัง */}
-            <div className="absolute inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
+    {/* ลายจุด Polkadot ฉากหลัง */}
+    <div className="absolute inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
 
-            {/* กลุ่มวงกลมอารมณ์ */}
-            <div className="absolute inset-0 w-full h-full z-10" style={{ opacity: isMounted ? 1 : 0 }}>
-              {isMounted && randomizedMoods.map((mood, idx) => (
-                <Circle 
-                  key={mood.id} 
-                  mood={mood} 
-                  pos={safePositions[idx]} 
-                  delay={idx * 0.4} 
-                  index={idx} 
-                  onStart={startGame} 
-                />
-              ))}
-            </div>
+    {/* กลุ่มวงกลมอารมณ์ */}
+    <div className="absolute inset-0 w-full h-full z-10" style={{ opacity: isMounted ? 1 : 0 }}>
+      {isMounted && randomizedMoods.map((mood, idx) => (
+        <Circle 
+          key={mood.id} 
+          mood={mood} 
+          pos={safePositions[idx]} 
+          delay={idx * 0.4} 
+          index={idx} 
+          onStart={startGame} 
+        />
+      ))}
+    </div>
 
-            <div className="relative z-30 flex flex-col items-center -translate-y-8 pointer-events-none">
-              
-              {/* กล่องโลโก้แบบ "ขอบจางหาย" */}
-              <div className="relative pointer-events-none p-12 flex flex-col items-center justify-center w-[350px] h-[220px]">
-                
-                <div className="absolute inset-0 bg-white/95 blur-3xl rounded-full"></div>
+    <div className="relative z-30 flex flex-col items-center -translate-y-8 pointer-events-none">
+      
+      {/* กล่องโลโก้แบบ "ขอบจางหาย" */}
+      <div className="relative pointer-events-none p-12 flex flex-col items-center justify-center w-[350px] h-[220px]">
+        
+        <div className="absolute inset-0 bg-white/95 blur-3xl rounded-full"></div>
 
-                <div className="relative z-10 flex flex-col items-center">
-                  <h1 className="text-6xl font-black mb-1.5 leading-tight tracking-tighter text-stone-900 drop-shadow-sm">
-                    {"คมสัด"}<span className="text-blue-600">สัด</span>
-                  </h1>
-                  <p className="text-stone-500 text-[13px] font-medium tracking-wide px-1 drop-shadow-sm">
-                    เลือกสิ่งที่ "ทัช" ในใจ ให้เป็นคำคมเฉพาะคุณ
-                  </p>
-                </div>
-                
-              </div>
-              
-              {/* 💡 เอา Link เดิมที่เคยอยู่ตรงนี้ออกไปแล้ว */}
+        <div className="relative z-10 flex flex-col items-center">
+          
+          {/* 💡 ส่วนที่แก้ไข: เปลี่ยนจากตัวหนังสือ h1 เป็นรูปภาพโลโก้ */}
+          <img 
+            src="/logo-khomsatsat.png" /* เช็คชื่อไฟล์ให้ตรงกับที่อยู่ในโฟลเดอร์ public ด้วยนะครับ */
+            alt="โลโก้คมสัดสัด"
+            className="w-[280px] sm:w-[320px] h-auto mb-3 object-contain drop-shadow-md"
+          />
 
-            </div>
+        <p className="text-stone-500 text-[13px] font-medium tracking-wide px-1 drop-shadow-sm text-center leading-relaxed">
+  เลือกสิ่งที่ "ทัช" ในใจ<br />ให้เป็นคำคมเฉพาะคุณ
+</p>
+        </div>
+        
+      </div>
 
-            <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md pointer-events-none">
-              Created By  อัพสกิลกับฟุ้ย
-            </p>
-          </motion.div>
-        )}
+    </div>
+
+    <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md pointer-events-none">
+      Created By <span className="text-blue-500 mx-1">×</span> อัพสกิลกับฟุ้ย
+    </p>
+  </motion.div>
+)}
 
 {/* === 2. SWIPING SCREEN (อัปเกรดสไตล์ Gen Z & Glassmorphism ✨) === */}
         {gameState === "swiping" && deck.length > 0 && (
@@ -607,19 +609,27 @@ export default function SwipeQuoteApp() {
     </div>
   </motion.div>
 )}
-{/* === 4. RESULT SCREEN (แก้ไขปัญหาการซ้อนทับลายน้ำ ✨) === */}
+{/* === 4. RESULT SCREEN (แก้ปัญหาสีเพี้ยนตอนเซฟรูป ✨) === */}
 {gameState === "result" && (
-  <div className="flex-1 flex flex-col bg-stone-50 relative h-full overflow-hidden">
+  <div className="flex-1 flex flex-col bg-slate-950 relative h-full overflow-hidden">
     
-    {/* ✨ พื้นที่แคปเจอร์ภาพ (Glassmorphism & Polkadot Style) ✨ */}
+    {/* ✨ พื้นที่แคปเจอร์ภาพ (ใช้สีพื้นฐานที่ Capture ง่ายขึ้น) ✨ */}
     <div 
       ref={quoteCardRef} 
-      className="flex-1 flex flex-col items-center justify-center text-center p-4 sm:p-6 relative bg-stone-50"
+      // 💡 แก้ไข: ใช้ style เพื่อระบุสีพื้นหลังแบบ Hex/RGB ชัดเจน (slate-950) ช่วยให้ไลบรารีวาดรูปได้แม่นยำขึ้น
+      className="flex-1 flex flex-col items-center justify-center text-center p-4 sm:p-6 relative"
+      style={{ backgroundColor: '#020617' }}
     >
-      {/* ลายจุด Polkadot ฉากหลัง */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
+      {/* ลายจุด Polkadot (ปรับ CSS ให้เป็นรูปแบบมาตรฐาน) */}
+      <div 
+        className="absolute inset-0 z-0 opacity-40"
+        style={{
+          backgroundImage: 'radial-gradient(#334155 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}
+      ></div>
 
-      {/* Dynamic Background Glow - แสงออร่าตามสีอารมณ์ข้างหลัง */}
+      {/* Dynamic Background Glow - แสงออร่า (เก็บไว้ได้ แต่ต้องคุม opacity ดีๆ) */}
       <div 
         className="absolute inset-0 opacity-40 blur-[80px] pointer-events-none transition-all duration-1000"
         style={{
@@ -627,63 +637,70 @@ export default function SwipeQuoteApp() {
         }}
       ></div>
 
-      {/* 💳 การ์ดคำคมแบบกระจกใส (Glass Card) */}
+      {/* 💳 การ์ดคำคม (แก้จากกระจกใส เป็นสีทึบเพื่อความชัวร์ตอนเซฟ) */}
       <div 
-        // 💡 แก้ไข: ปรับ pb-8 sm:pb-10 เป็น pb-6 sm:pb-8 (เนื่องจากลายน้ำไม่ได้เป็น absolute อีกต่อไป)
-        // 💡 แก้ไข: เพิ่ม gap-8 เพื่อรองรับลายน้ำที่เพิ่มเข้ามาใน flex layout
-        className="relative z-10 w-full max-w-[95%] bg-white/70 backdrop-blur-xl border-[3px] border-white rounded-[2.5rem] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.08)] pt-12 pb-6 sm:pt-14 sm:pb-8 px-8 sm:px-10 flex flex-col items-center gap-8"
+        // 💡 แก้ไข: เปลี่ยนจาก bg-slate-900/40 backdrop-blur-2xl (โปร่งแสง) 
+        // เป็น bg-slate-900 (ทึบ) หรือสีน้ำเงินเข้มทึบ เพื่อให้ตอนเซฟรูปไม่เพี้ยน
+        className="relative z-10 w-full max-w-[95%] bg-slate-900 border border-slate-700/50 rounded-[2.5rem] shadow-[0_30px_70px_-10px_rgba(0,0,0,0.8)] pt-12 pb-6 sm:pt-14 sm:pb-8 px-8 sm:px-10 flex flex-col items-center gap-8"
+        style={{ backgroundColor: '#0f172a' }} // มั่นใจว่าเป็นสีทึบ slate-900
       >
         
         {/* ไอคอน Quote แต่งขอบ */}
         <div 
-          className="absolute -top-5 left-8 bg-white p-3 rounded-full shadow-lg border-[3px] border-stone-100 rotate-[-10deg]"
+          className="absolute -top-5 left-8 bg-slate-800 p-3 rounded-full shadow-2xl border-[2px] border-slate-600/50 rotate-[-10deg]"
         >
-          <Quote size={28} className="text-stone-300" />
+          <Quote size={28} className="text-blue-400" />
         </div>
 
-        {/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
-        <div className="w-full flex flex-col items-center gap-1.5 mt-2 px-1">
-          {(finalQuote || "").replace(/\\n/g, '\n').split('\n').map((line, idx) => {
-            if (!line.trim()) return null;
-            return (
-              <span 
-                key={idx}
-                className="text-[20px] sm:text-[24px] font-black leading-relaxed text-stone-900 tracking-tight text-center relative inline-block drop-shadow-sm max-w-full"
-                style={{ wordBreak: 'break-word' }}
-              >
-                <span className="relative z-10 px-2 block">{line.trim()}</span>
-                
-                {/* ไฮไลท์สีด้านหลังข้อความ (ปรับให้จางลง ละมุนขึ้น) */}
-                <span 
-                  className="absolute bottom-1.5 left-0 w-full h-[35%] opacity-20 z-0 rounded-sm -rotate-1"
-                  style={{
-                    backgroundColor: playerMood ? ({happy: "#facc15", sad: "#60a5fa", angry: "#ef4444", fear: "#a855f7", love: "#ec4899", lonely: "#78716c", hope: "#34d399", confused: "#818cf8", apathetic: "#94a3b8", exhausted: "#fb923c"})[playerMood.id] || "#3b82f6" : "#3b82f6"
-                  }}
-                ></span>
-              </span>
-            );
-          })}
-        </div>
+     {/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
+<div className="w-full flex flex-col items-center gap-1.5 mt-2 px-1">
+  {(finalQuote || "").replace(/\\n/g, '\n').split('\n').map((line, idx) => {
+    if (!line.trim()) return null;
+    return (
+      <span 
+        key={idx}
+        // 💡 แก้ไข 1: เปลี่ยนเงาจากสีขาวเรืองแสง เป็นเงาสีดำเข้ม (rgba(0,0,0,0.8)) เพื่อตัดขอบให้ตัวอักษรขาวคมชัดขึ้น
+        className="text-[20px] sm:text-[24px] font-black leading-relaxed text-white tracking-wide text-center relative inline-block drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-full"
+        style={{ wordBreak: 'break-word' }}
+      >
+        <span className="relative z-10 px-2 block">{line.trim()}</span>
+        
+        {/* ไฮไลท์สีด้านหลังข้อความ */}
+        <span 
+          // 💡 แก้ไข 2: ปรับตำแหน่งให้ต่ำลง (bottom-0), ลดความหนา (h-[25%]), และลดความเข้ม (opacity-35)
+          className="absolute bottom-0 left-0 w-full h-[25%] opacity-35 z-0 rounded-sm -rotate-1"
+          style={{
+            backgroundColor: playerMood ? ({happy: "#fde047", sad: "#93c5fd", angry: "#f87171", fear: "#c084fc", love: "#f472b6", lonely: "#a8a29e", hope: "#6ee7b7", confused: "#a5b4fc", apathetic: "#94a3b8", exhausted: "#fdba74"})[playerMood.id] || "#60a5fa" : "#60a5fa"
+          }}
+        ></span>
+      </span>
+    );
+  })}
+</div>
 
-        {/* แท็กคำศัพท์: ดีไซน์แบบ Pill Button */}
+        {/* แท็กคำศัพท์: ดีไซน์แบบ Pill Button โทนดาร์ก */}
         <div className="flex flex-wrap justify-center items-center gap-2.5">
           {collectedWords.map((w, i) => (
             <span 
               key={i} 
-              className={`text-[12px] font-extrabold px-4 py-1.5 rounded-full border-[2px] bg-white shadow-sm whitespace-nowrap ${playerMood ? moodOptions.find(m => m.id === playerMood.id)?.theme.split(" ").filter(c => c.includes('text') || c.includes('border')).join(' ') : 'text-blue-600 border-blue-200'}`}
+              // 💡 เพิ่ม background-color ทึบๆ เข้าไปหน่อยกันตอนเซฟมองไม่เห็น
+              className={`text-[12px] font-extrabold px-4 py-1.5 rounded-full border bg-slate-800/90 shadow-sm whitespace-nowrap ${playerMood ? moodOptions.find(m => m.id === playerMood.id)?.theme.split(" ").filter(c => c.includes('text') || c.includes('border')).join(' ') : 'text-blue-300 border-blue-500/30'}`}
+              style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }} 
             >
               #{w}
             </span>
           ))}
         </div>
 
-        {/* ลายน้ำแบรนด์ คมสัดสัด - ดีไซน์ Tag น่ารักๆ (ย้ายมาอยู่ภายใน flex layout) */}
-        {/* 💡 แก้ไข: ย้ายมาวางไว้ที่นี่ และลบ 'absolute bottom-6 z-10' ออก, เพิ่ม mt-8 เพื่อสร้างช่องว่าง */}
+        {/* ลายน้ำแบรนด์: ปรับเป็นโทน Dark Glass แบบทึบ */}
         <div className="relative flex flex-col items-center gap-1.5 mt-8 w-full">
-          <div className="text-[9px] font-black tracking-[0.3em] text-stone-800 uppercase drop-shadow-sm bg-white/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-white">
-            CREATED BY <span className="text-blue-600 mx-1">×</span> อัพสกิลกับฟุ้ย
+          <div 
+            className="text-[9px] font-black tracking-[0.3em] text-slate-200 uppercase drop-shadow-sm bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700/50"
+            style={{ backgroundColor: '#1e293b' }} // slate-800 ทึบ
+          >
+            CREATED BY <span className="text-blue-400 mx-1">×</span> อัพสกิลกับฟุ้ย
           </div>
-          <div className="text-[10px] font-bold tracking-widest text-stone-400">
+          <div className="text-[10px] font-bold tracking-widest text-slate-500">
             {timestamp}
           </div>
         </div>
@@ -692,13 +709,13 @@ export default function SwipeQuoteApp() {
 
     </div>
     
-    {/* === โซนปุ่มควบคุม (UI) === */}
-    <div className="p-6 pb-8 bg-white border-t border-stone-200 flex flex-col gap-3 shrink-0 relative z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
+    {/* === โซนปุ่มควบคุม (UI) โทนเข้ม === */}
+    <div className="p-6 pb-8 bg-slate-950 border-t border-slate-800 flex flex-col gap-3 shrink-0 relative z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
       
       <button 
         onClick={handleSaveImage}
         disabled={isSaving}
-        className="w-full bg-stone-900 text-white font-black py-4 rounded-2xl shadow-xl shadow-stone-900/20 flex items-center justify-center gap-2 text-[16px] hover:bg-stone-800 hover:scale-[1.02] active:scale-[0.97] transition-all disabled:opacity-50"
+        className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-[0_8px_25px_-5px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2 text-[16px] hover:bg-blue-500 hover:scale-[1.02] active:scale-[0.97] transition-all disabled:opacity-50"
       >
         {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
         {isSaving ? "กำลังจัดเก็บความทรงจำ..." : "เซฟคำคมลงเครื่อง"}
@@ -707,7 +724,7 @@ export default function SwipeQuoteApp() {
       <div className="grid grid-cols-2 gap-3">
         <button 
           onClick={resetApp} 
-          className="py-3.5 bg-stone-100 text-stone-600 font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 hover:bg-stone-200 active:scale-95 transition-all border border-stone-200"
+          className="py-3.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 hover:bg-slate-700 active:scale-95 transition-all border border-slate-700"
         >
           <RefreshCcw size={15}/> สร้างคำคมใหม่
         </button>
@@ -716,9 +733,9 @@ export default function SwipeQuoteApp() {
           href="https://lin.ee/rQawKUM" 
           target="_blank"
           rel="noopener noreferrer"
-          className="py-3.5 bg-blue-600 text-white font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 active:scale-95 hover:bg-blue-700 hover:scale-[1.02] shadow-lg shadow-blue-600/20 transition-all"
+          className="py-3.5 bg-black text-white font-bold rounded-xl text-[13px] flex items-center justify-center gap-2 active:scale-95 hover:bg-zinc-900 hover:scale-[1.02] shadow-lg shadow-black/50 border border-zinc-800 transition-all"
         >
-          <Heart size={15} className="fill-current"/> 
+          <Heart size={15} className="fill-current text-pink-500"/> 
           ติดตามอัพสกิลกับฟุ้ย
         </a>
       </div>
