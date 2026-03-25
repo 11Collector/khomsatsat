@@ -163,40 +163,44 @@ export default function GalleryPage() {
     }
   };
 
-// 💡 ระบบ Download รูปภาพ (ปรับปรุงใหม่: การ์ดสมดุล ขอบสวยเป๊ะ ✨)
+// 💡 ระบบ Download รูปภาพ (เวอร์ชันการ์ดเป๊ะ 1:1 ตามเนื้อหา ✨)
   const handleDownloadImage = async (quoteId: string) => {
     try {
       setDownloadingId(quoteId);
       const element = document.getElementById(`quote-card-${quoteId}`);
       if (!element) return;
       
-      // 1. ลบ Hover และ Transition ชั่วคราวเพื่อให้ภาพนิ่งและคมชัด
+      // 1. เตรียมตัวการ์ด: ปรับให้หดตัวตามเนื้อหาจริงและเอาเอฟเฟกต์หน้าเว็บออกชั่วคราว
+      const originalHeight = element.style.height;
+      const originalMinHeight = element.style.minHeight;
+      const originalTransition = element.style.transition;
+      
+      element.style.height = 'auto';
+      element.style.minHeight = '0';
       element.style.transition = 'none';
       element.classList.remove('hover:scale-[1.02]');
       
+      // 2. สั่ง Capture โดยเน้นที่ตัว Element เพียวๆ
       const dataUrl = await toPng(element, { 
         quality: 1.0, 
-        pixelRatio: 3, // ความละเอียดสูงพิเศษ
+        pixelRatio: 3, // ชัดระดับ 4K
+        // ❌ เอา padding และ backgroundColor ด้านนอกออกเพื่อให้ได้ขนาดเท่าการ์ดเป๊ะๆ
         style: { 
-          transform: 'scale(1)', 
-          // 💡 ปรับ Padding ให้พอดี (ไม่กว้างเกินไปเหมือนอันเดิม)
-          padding: '1.5rem', 
-          // 💡 ใช้สีพื้นหลัง stone-50 เหมือนหน้าเว็บเพื่อให้ดูละมุน
-          backgroundColor: '#fafaf9', 
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '0', // ให้ background หลักเป็นสี่เหลี่ยม แต่ตัวการ์ดจะมนเอง
+          transform: 'scale(1)',
+          margin: '0',
+          borderRadius: '2.5rem', // คืนค่าความมนให้การ์ดตอนเซฟ
         },
         filter: (node) => {
-          // ซ่อนปุ่มต่างๆ ไม่ให้ติดไปในรูป
+          // ซ่อนปุ่มกดและ UI ที่ไม่ต้องการให้ติดไปในรูป
           if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') return false;
           return true;
         }
       });
       
-      // 2. คืนค่าเดิมกลับไป
-      element.style.transition = '';
+      // 3. คืนค่าเดิมให้ UI หน้าเว็บ
+      element.style.height = originalHeight;
+      element.style.minHeight = originalMinHeight;
+      element.style.transition = originalTransition;
       element.classList.add('hover:scale-[1.02]');
       
       const link = document.createElement('a');
@@ -335,7 +339,7 @@ export default function GalleryPage() {
                         {/* 💡 ลายน้ำแบรนด์ (เวลาแคปเจอร์จะติดไปด้วย) */}
                         <div className="flex flex-col items-center gap-1 mt-2 opacity-50 pb-2">
                           <div className="text-[8px] font-black tracking-[0.3em] text-stone-800 uppercase bg-white/60 px-3 py-1 rounded-full border border-white">
-                            KHOMSATSAT <span className="text-blue-500 mx-1">×</span> UPSKILL WITH FUII
+                            CREATED BY <span className="text-blue-500 mx-1">×</span> อัพสกิลกับฟุ้ย
                           </div>
                         </div>
 
@@ -395,7 +399,7 @@ export default function GalleryPage() {
       {/* 💡 6. Footer คลีนๆ สบายตา */}
       <footer className="w-full py-10 mt-auto flex flex-col items-center justify-center relative z-10 bg-white/50 backdrop-blur-md border-t border-white">
         <p className="text-[10px] text-stone-600 font-black uppercase tracking-[0.3em] drop-shadow-sm">
-          Khomsatsat <span className="text-blue-600 mx-1">×</span> Upskill with Fuii
+          Created By <span className="text-blue-600 mx-1">×</span> อัพสกิลกับฟุ้ย
         </p>
         <p className="text-[10px] text-stone-400 font-medium tracking-wider mt-2">
           © {new Date().getFullYear()} All rights reserved.

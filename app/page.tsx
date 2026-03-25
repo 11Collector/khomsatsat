@@ -109,7 +109,7 @@ const floatingAnimation = (delay: number, duration: number = 6): any => ({
 const loadingPhrases = [
   "กำลังจับความรู้สึกของคุณตอนนี้...",
   "รอหน่อยนะ... กำลังหาคำที่ทัชใจให้ ✨",
-  "ทุกความรู้สึกเมคเซนส์ในแบบของมัน",
+  "ทุกความรู้สึกมีเหตุผลในแบบของมัน",
   "เตรียมแคปได้เลย ประโยคนี้เพื่อแก 📸"
 ];
 // --- Helper Component สำหรับ Bubble ---
@@ -351,7 +351,7 @@ export default function SwipeQuoteApp() {
             </div>
 
             <p className="absolute bottom-6 text-[9px] text-stone-400 font-black uppercase tracking-[0.2em] z-30 bg-white/50 px-3 py-1 rounded-full backdrop-blur-md pointer-events-none">
-              Khomsatsat x Upskill with Fuii
+              Created By <span className="text-blue-600 mx-1">×</span> อัพสกิลกับฟุ้ย
             </p>
           </motion.div>
         )}
@@ -673,7 +673,7 @@ export default function SwipeQuoteApp() {
         {/* 💡 แก้ไข: ย้ายมาวางไว้ที่นี่ และลบ 'absolute bottom-6 z-10' ออก, เพิ่ม mt-8 เพื่อสร้างช่องว่าง */}
         <div className="relative flex flex-col items-center gap-1.5 mt-8 w-full">
           <div className="text-[9px] font-black tracking-[0.3em] text-stone-800 uppercase drop-shadow-sm bg-white/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-white">
-            KHOMSATSAT <span className="text-blue-600 mx-1">×</span> UPSKILL WITH FUII
+            CREATED BY <span className="text-blue-600 mx-1">×</span> อัพสกิลกับฟุ้ย
           </div>
           <div className="text-[10px] font-bold tracking-widest text-stone-400">
             {timestamp}
