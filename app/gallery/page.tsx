@@ -232,12 +232,15 @@ export default function GalleryPage() {
       {/* 💡 2. ลายจุด Polkadot โทนดาร์ก */}
       <div className="fixed inset-0 z-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none"></div>
 
-      {/* 💡 3. Header กระจกดำใส (Dark Glassmorphism) */}
+     {/* 💡 3. Header กระจกดำใส (Dark Glassmorphism) */}
       <header className="pt-12 pb-4 flex flex-col items-center relative z-20 bg-slate-900/60 backdrop-blur-xl sticky top-0 border-b border-slate-800 shadow-sm">
         <div className="px-6 w-full flex items-center justify-center relative mb-4">
-          <Link href="/" className="absolute left-6 p-2.5 bg-slate-800 rounded-full hover:bg-slate-700 shadow-sm transition-colors border border-slate-700">
+          
+          {/* 💡 แก้ไข: เพิ่ม top-0 และขยับลงมานิดนึงด้วย mt-1 เพื่อให้ขอบปุ่มพอดีกับคำว่า "แกลเลอรี" */}
+          <Link href="/" className="absolute left-6 top-0 mt-1 p-2.5 bg-slate-800 rounded-full hover:bg-slate-700 shadow-sm transition-colors border border-slate-700">
             <ChevronLeft size={20} className="text-slate-300" />
           </Link>
+
           <div className="text-center">
             <h1 className="text-4xl font-black tracking-tight text-white drop-shadow-sm">แกลเลอรี<span className="text-blue-500">ทัชใจ</span></h1>
             <p className="text-[12px] text-slate-400 mt-0.5 font-bold tracking-wide">รวมคำคม ความรู้สึกที่ถูกกลั่นกรอง</p>
@@ -267,7 +270,7 @@ export default function GalleryPage() {
           </div>
         </div>
       </header>
-
+      
       <style dangerouslySetInnerHTML={{__html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
