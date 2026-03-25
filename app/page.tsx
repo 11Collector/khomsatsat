@@ -652,31 +652,32 @@ export default function SwipeQuoteApp() {
           <Quote size={28} className="text-blue-400" />
         </div>
 
-     {/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
-<div className="w-full flex flex-col items-center gap-1.5 mt-2 px-1">
-  {(finalQuote || "").replace(/\\n/g, '\n').split('\n').map((line, idx) => {
-    if (!line.trim()) return null;
-    return (
-      <span 
-        key={idx}
-        // 💡 แก้ไข 1: เปลี่ยนเงาจากสีขาวเรืองแสง เป็นเงาสีดำเข้ม (rgba(0,0,0,0.8)) เพื่อตัดขอบให้ตัวอักษรขาวคมชัดขึ้น
-        className="text-[20px] sm:text-[24px] font-black leading-relaxed text-white tracking-wide text-center relative inline-block drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-full"
-        style={{ wordBreak: 'break-word' }}
-      >
-        <span className="relative z-10 px-2 block">{line.trim()}</span>
-        
-        {/* ไฮไลท์สีด้านหลังข้อความ */}
-        <span 
-          // 💡 แก้ไข 2: ปรับตำแหน่งให้ต่ำลง (bottom-0), ลดความหนา (h-[25%]), และลดความเข้ม (opacity-35)
-          className="absolute bottom-0 left-0 w-full h-[25%] opacity-35 z-0 rounded-sm -rotate-1"
-          style={{
-            backgroundColor: playerMood ? ({happy: "#fde047", sad: "#93c5fd", angry: "#f87171", fear: "#c084fc", love: "#f472b6", lonely: "#a8a29e", hope: "#6ee7b7", confused: "#a5b4fc", apathetic: "#94a3b8", exhausted: "#fdba74"})[playerMood.id] || "#60a5fa" : "#60a5fa"
-          }}
-        ></span>
-      </span>
-    );
-  })}
-</div>
+        {/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
+        <div className="w-full flex flex-col items-center gap-1.5 mt-2 px-1">
+          {(finalQuote || "").replace(/\\n/g, '\n').split('\n').map((line, idx) => {
+            if (!line.trim()) return null;
+            return (
+              <span 
+                key={idx}
+                className="text-[20px] sm:text-[24px] font-black leading-relaxed text-white tracking-wide text-center relative inline-block drop-shadow-[0_2px_8px_rgba(255,255,255,0.15)] max-w-full"
+                style={{ wordBreak: 'break-word' }}
+              >
+                <span className="relative z-10 px-2 block">{line.trim()}</span>
+                
+                {/* ไฮไลท์สีด้านหลังข้อความ (💡 แก้ปัญหาสีเพี้ยนตอนเซฟ!) */}
+                <span 
+                  // 💡 แก้ไขหลัก: เอา mix-blend-screen ออก (เพราะตอนเซฟชอบพัง)
+                  // แล้วปรับสีไฮไลท์ให้ "สว่างขึ้น" และใช้ opacity ต่ำๆ แทน (เช่น opacity-60)
+                  className="absolute bottom-1.5 left-0 w-full h-[35%] opacity-60 z-0 rounded-sm -rotate-1"
+                  style={{
+                    // ปรับสีไฮไลท์ให้โทน "สว่าง" (Lighten version) เพื่อให้พุ่งบนพื้นมืด
+                    backgroundColor: playerMood ? ({happy: "#fde047", sad: "#93c5fd", angry: "#f87171", fear: "#c084fc", love: "#f472b6", lonely: "#a8a29e", hope: "#6ee7b7", confused: "#a5b4fc", apathetic: "#94a3b8", exhausted: "#fdba74"})[playerMood.id] || "#60a5fa" : "#60a5fa"
+                  }}
+                ></span>
+              </span>
+            );
+          })}
+        </div>
 
         {/* แท็กคำศัพท์: ดีไซน์แบบ Pill Button โทนดาร์ก */}
         <div className="flex flex-wrap justify-center items-center gap-2.5">
