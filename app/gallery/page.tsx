@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-// 💡 1. Import limit, startAfter, where เพิ่มเติมเพื่อทำระบบโหลดทีละนิด
 import { collection, getDocs, query, orderBy, doc, updateDoc, increment, limit, startAfter, where } from "firebase/firestore";
 import { db } from "@/app/lib/firebase"; 
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +27,16 @@ const moodCategories = [
   { id: "exhausted", icon: "🫠", title: "เหนื่อยล้า" }
 ];
 
+// ฟังก์ชันผู้ช่วยสำหรับดึงสีตามอารมณ์ (ใช้ทำสี Tag และเงา)
+const getMoodColor = (moodTitle: string) => {
+  const map: Record<string, string> = {
+    "มีความสุข": "#facc15", "เศร้าหมอง": "#60a5fa", "โกรธมาก": "#ef4444",
+    "หวาดกลัว": "#a855f7", "คลั่งรัก": "#ec4899", "โดดเดี่ยว": "#78716c",
+    "เปี่ยมหวัง": "#34d399", "สับสน": "#818cf8", "เฉยเมย": "#94a3b8", "เหนื่อยล้า": "#fb923c"
+  };
+  return map[moodTitle] || "#3b82f6"; // Default สีฟ้า
+};
+
 interface QuoteData {
   id: string;
   mood: string;
@@ -37,7 +46,6 @@ interface QuoteData {
   likes?: number;
 }
 
-// 💡 กำหนดจำนวนที่จะดึงมาในแต่ละรอบ (15 อันกำลังสวย เพราะลงตัวกับ Grid 3 คอลัมน์)
 const FETCH_LIMIT = 15;
 
 export default function GalleryPage() {
@@ -48,17 +56,14 @@ export default function GalleryPage() {
   const [activeFilter, setActiveFilter] = useState<string>("ทั้งหมด");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  // 💡 2. State ใหม่สำหรับระบบ Load More
-  const [lastDoc, setLastDoc] = useState<any>(null); // จำว่าโหลดถึงไหนแล้ว
-  const [hasMore, setHasMore] = useState(true); // เช็คว่ามีข้อมูลเหลือให้โหลดอีกไหม
-  const [loadingMore, setLoadingMore] = useState(false); // สถานะตอนกำลังกดปุ่มโหลดเพิ่ม
+  const [lastDoc, setLastDoc] = useState<any>(null); 
+  const [hasMore, setHasMore] = useState(true); 
+  const [loadingMore, setLoadingMore] = useState(false); 
 
-  // 💡 3. ฟังก์ชันโหลดข้อมูลครั้งแรก (หรือตอนเปลี่ยนหมวดหมู่)
   const fetchInitialQuotes = async () => {
     setLoading(true);
     try {
       let q;
-      // ถ้าเลือกทั้งหมด ไม่ต้องใส่ where, แต่ถ้าเลือกหมวดอื่น ให้ filter จาก Database เลย
       if (activeFilter === "ทั้งหมด") {
         q = query(collection(db, "quotes"), orderBy("createdAt", "desc"), limit(FETCH_LIMIT));
       } else {
@@ -73,23 +78,20 @@ export default function GalleryPage() {
       
       setQuotes(data);
       
-      // อัปเดตตัวแปรสำหรับการโหลดครั้งต่อไป
       if (querySnapshot.docs.length > 0) {
         setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-        setHasMore(querySnapshot.docs.length === FETCH_LIMIT); // ถ้าดึงมาได้ครบ 15 แปลว่าน่าจะมีต่อ
+        setHasMore(querySnapshot.docs.length === FETCH_LIMIT); 
       } else {
         setLastDoc(null);
-        setHasMore(false); // ข้อมูลหมดแล้ว
+        setHasMore(false); 
       }
     } catch (error) {
       console.error("Error fetching initial quotes: ", error);
-      // ⚠️ คำเตือน: ถ้าเปิดคอนโซลแล้วเจอ Error เรื่อง Firebase Index ให้คลิกลิงก์ใน Error นั้นเพื่อสร้าง Index นะครับ
     } finally {
       setLoading(false);
     }
   };
 
-  // 💡 4. ฟังก์ชันโหลดข้อมูลเพิ่มเติม (Load More)
   const loadMoreQuotes = async () => {
     if (!lastDoc || loadingMore || !hasMore) return;
     
@@ -108,7 +110,6 @@ export default function GalleryPage() {
         data.push({ id: document.id, ...document.data(), likes: document.data().likes || 0 } as QuoteData);
       });
       
-      // เอาของใหม่ไปต่อท้ายของเก่า
       setQuotes(prev => [...prev, ...data]);
       
       if (querySnapshot.docs.length > 0) {
@@ -124,16 +125,12 @@ export default function GalleryPage() {
     }
   };
 
-  // 💡 5. ดึงข้อมูลใหม่ทุกครั้งที่ State activeFilter เปลี่ยน
   useEffect(() => {
     fetchInitialQuotes();
-    
-    // โหลดประวัติการกดไลก์จากเครื่อง (ทำครั้งเดียว)
     const savedLikes = localStorage.getItem("khomsatsat_likes");
     if (savedLikes) setLikedQuotes(JSON.parse(savedLikes));
   }, [activeFilter]);
 
-  // ระบบ Like
   const handleLike = async (quoteId: string) => {
     const isLiked = likedQuotes.includes(quoteId);
     let newLikedQuotes;
@@ -155,7 +152,6 @@ export default function GalleryPage() {
     }
   };
 
-  // ระบบ Share Text
   const handleShare = async (item: QuoteData) => {
     const textToShare = `"${item.quote.replace(/\\n/g, '\n')}"\n\nอารมณ์: ${item.mood}\n#${item.words.join(" #")}\n\nสร้างคำคมของคุณได้ที่: ${window.location.origin}`;
     if (navigator.share) {
@@ -167,20 +163,42 @@ export default function GalleryPage() {
     }
   };
 
-  // ระบบ Download รูปภาพ
+// 💡 ระบบ Download รูปภาพ (ปรับปรุงใหม่: การ์ดสมดุล ขอบสวยเป๊ะ ✨)
   const handleDownloadImage = async (quoteId: string) => {
     try {
       setDownloadingId(quoteId);
       const element = document.getElementById(`quote-card-${quoteId}`);
       if (!element) return;
+      
+      // 1. ลบ Hover และ Transition ชั่วคราวเพื่อให้ภาพนิ่งและคมชัด
+      element.style.transition = 'none';
+      element.classList.remove('hover:scale-[1.02]');
+      
       const dataUrl = await toPng(element, { 
-        quality: 1.0, pixelRatio: 3,
-        style: { backgroundColor: '#1c1917', transform: 'scale(1)', borderRadius: '2rem' },
+        quality: 1.0, 
+        pixelRatio: 3, // ความละเอียดสูงพิเศษ
+        style: { 
+          transform: 'scale(1)', 
+          // 💡 ปรับ Padding ให้พอดี (ไม่กว้างเกินไปเหมือนอันเดิม)
+          padding: '1.5rem', 
+          // 💡 ใช้สีพื้นหลัง stone-50 เหมือนหน้าเว็บเพื่อให้ดูละมุน
+          backgroundColor: '#fafaf9', 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '0', // ให้ background หลักเป็นสี่เหลี่ยม แต่ตัวการ์ดจะมนเอง
+        },
         filter: (node) => {
+          // ซ่อนปุ่มต่างๆ ไม่ให้ติดไปในรูป
           if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') return false;
           return true;
         }
       });
+      
+      // 2. คืนค่าเดิมกลับไป
+      element.style.transition = '';
+      element.classList.add('hover:scale-[1.02]');
+      
       const link = document.createElement('a');
       link.download = `khomsatsat-${quoteId}.png`;
       link.href = dataUrl;
@@ -193,32 +211,37 @@ export default function GalleryPage() {
   };
 
   return (
-    <div className={`min-h-[100dvh] bg-stone-950 text-stone-100 ${kanit.className} overflow-x-hidden relative flex flex-col`}>
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-stone-950 to-stone-950 pointer-events-none -z-10"></div>
+    // 💡 1. เปลี่ยนโทนสีหลักเป็นสว่าง (bg-stone-50)
+    <div className={`min-h-[100dvh] bg-stone-50 text-stone-900 ${kanit.className} overflow-x-hidden relative flex flex-col`}>
+      
+      {/* 💡 2. ลายจุด Polkadot คุมโทนทั้งหน้า */}
+      <div className="fixed inset-0 z-0 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none"></div>
 
-      <header className="pt-12 pb-4 flex flex-col items-center relative z-20 bg-stone-950/80 backdrop-blur-xl sticky top-0 border-b border-white/5">
+      {/* 💡 3. Header กระจกใส (Glassmorphism) */}
+      <header className="pt-12 pb-4 flex flex-col items-center relative z-20 bg-white/70 backdrop-blur-xl sticky top-0 border-b border-white shadow-sm">
         <div className="px-6 w-full flex items-center justify-center relative mb-4">
-          <Link href="/" className="absolute left-6 p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
-            <ChevronLeft size={20} />
+          <Link href="/" className="absolute left-6 p-2.5 bg-white rounded-full hover:bg-stone-100 shadow-sm transition-colors border border-stone-100">
+            <ChevronLeft size={20} className="text-stone-700" />
           </Link>
           <div className="text-center">
-            <h1 className="text-2xl font-black tracking-tight drop-shadow-md">แกลเลอรี<span className="text-blue-500">ทัชใจ</span></h1>
-            <p className="text-[12px] text-stone-400 mt-0.5 font-medium tracking-wide">ร้อยเรียงความรู้สึกที่ถูกกลั่นกรอง</p>
+            <h1 className="text-2xl font-black tracking-tight text-stone-900 drop-shadow-sm">แกลเลอรี<span className="text-blue-600">ทัชใจ</span></h1>
+            <p className="text-[12px] text-stone-500 mt-0.5 font-bold tracking-wide">รวมความรู้สึกที่ถูกกลั่นกรอง</p>
           </div>
         </div>
 
+        {/* 💡 4. ปุ่ม Filter สไตล์วัยรุ่น Pill Button */}
         <div className="w-full overflow-x-auto pb-4 pt-2 hide-scrollbar">
-          <div className="flex px-6 gap-2 w-max mx-auto">
+          <div className="flex px-6 gap-2.5 w-max mx-auto">
             {moodCategories.map((cat) => {
               const isActive = activeFilter === cat.title;
               return (
                 <button
                   key={cat.id}
                   onClick={() => setActiveFilter(cat.title)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold transition-all active:scale-95 ${
+                  className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-[13px] font-bold transition-all active:scale-95 shadow-sm border-[2px] ${
                     isActive 
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40 border border-blue-500' 
-                      : 'bg-stone-900 text-stone-400 border border-white/10 hover:bg-stone-800 hover:text-stone-200'
+                      ? 'bg-stone-900 text-white border-stone-900' 
+                      : 'bg-white text-stone-500 border-white hover:border-stone-200 hover:text-stone-800'
                   }`}
                 >
                   <span className="text-[14px]">{cat.icon}</span>
@@ -235,88 +258,114 @@ export default function GalleryPage() {
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
 
-      <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full flex flex-col items-center">
+      <main className="max-w-6xl mx-auto px-6 py-10 flex-1 w-full flex flex-col items-center relative z-10">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 opacity-50 w-full">
-            <Loader2 size={40} className="animate-spin text-blue-500 mb-4" />
-            <p className="text-sm font-bold tracking-widest uppercase">Loading...</p>
+          <div className="flex flex-col items-center justify-center py-32 w-full">
+            <div className="w-16 h-16 border-4 border-stone-200 border-t-blue-500 rounded-full animate-spin mb-6 shadow-sm"></div>
+            <p className="text-sm font-black tracking-widest uppercase text-stone-400">Loading...</p>
           </div>
         ) : quotes.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-center w-full">
-            <span className="text-5xl mb-4 grayscale opacity-50">🍃</span>
-            <p className="text-stone-400 font-medium">ยังไม่มีคำคมในหมวดหมู่นี้</p>
-            <Link href="/" className="mt-4 text-blue-500 text-sm font-bold hover:underline">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-32 text-center w-full">
+            <span className="text-6xl mb-6 drop-shadow-sm">🍃</span>
+            <p className="text-stone-500 font-bold text-lg mb-2">ยังไม่มีคำคมในหมวดหมู่นี้</p>
+            <Link href="/" className="mt-2 px-6 py-2.5 bg-blue-600 text-white text-[13px] rounded-full font-bold shadow-lg hover:bg-blue-700 transition-colors">
               ไปสร้างคำคมแรกกันเลย!
             </Link>
           </motion.div>
         ) : (
           <div className="w-full flex flex-col items-center">
-            {/* 💡 เปลี่ยนเป้าหมาย map จาก filteredQuotes เป็น quotes ตรงๆ ได้เลย */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+            
+            {/* 💡 5. Grid การ์ด (Glass Card Aesthetic) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
               <AnimatePresence mode="popLayout">
                 {quotes.map((item, index) => {
                   const hasLiked = likedQuotes.includes(item.id);
                   const isCopied = copiedId === item.id;
+                  const moodColor = getMoodColor(item.mood);
                   
                   return (
                     <motion.div 
                       layout
                       id={`quote-card-${item.id}`} 
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                       transition={{ delay: (index % FETCH_LIMIT) * 0.05 }}
                       key={item.id} 
-                      className="bg-stone-900/80 backdrop-blur-sm border border-white/10 rounded-[2rem] p-8 relative flex flex-col shadow-xl hover:border-blue-500/30 transition-colors group"
+                      className="bg-white/80 backdrop-blur-xl border-[3px] border-white rounded-[2.5rem] p-8 sm:p-10 relative flex flex-col shadow-[0_20px_50px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] hover:scale-[1.02] transition-all duration-300 group overflow-hidden"
                     >
-                      <Quote size={24} className="text-stone-700 absolute top-6 left-6 -rotate-12 group-hover:text-blue-500/30 transition-colors" />
-                      
-                      <div className="absolute bottom-8 right-8 text-[8px] font-black uppercase tracking-[0.2em] text-stone-500/30 text-right pointer-events-none z-0">
-                        Khomsatsat <br/><span className="text-blue-500/50">x Upskill with Fuii</span>
+                      {/* แสง Glow หลังการ์ดจางๆ ตามสีอารมณ์ */}
+                      <div 
+                        className="absolute inset-0 opacity-10 pointer-events-none transition-all duration-500 group-hover:opacity-20 blur-3xl"
+                        style={{ background: `radial-gradient(circle at top left, ${moodColor} 0%, transparent 70%)` }}
+                      ></div>
+
+                      {/* ไอคอน Quote แต่งขอบ */}
+                      <div className="absolute top-6 left-6 bg-white p-3 rounded-full shadow-sm border-[2px] border-stone-50 rotate-[-10deg] z-10">
+                        <Quote size={20} className="text-stone-300" />
                       </div>
                       
-
-                      <div className="flex justify-end mb-4 relative z-10" data-html2canvas-ignore="true">
-                        <span className="text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full text-stone-400 border border-white/5 flex items-center gap-1.5 backdrop-blur-md">
-                          {moodCategories.find(m => m.title === item.mood)?.icon} {item.mood || "ไม่ระบุอารมณ์"}
+                 {/* 💡 ป้ายกำกับอารมณ์ (บนขวา) */}
+                      <div className="flex justify-end mb-6 relative z-10" data-html2canvas-ignore="true">
+                        <span className="text-[11px] font-black tracking-wide bg-white px-4 py-1.5 rounded-full text-stone-600 shadow-sm border border-stone-100 flex items-center gap-1.5">
+                          {moodCategories.find(m => m.title === item.mood)?.icon} {item.mood || "ไม่ระบุ"}
                         </span>
                       </div>
 
-                      <p className="text-[16px] font-bold leading-[1.8] text-stone-200 whitespace-pre-line my-4 grow relative z-10">
+                      {/* 💡 ตัวคำคม (กลับมาเป็นตัวหนังสือคลีนๆ ไม่มีปาดสี) */}
+                      <p className="text-[18px] sm:text-[20px] font-black leading-relaxed text-stone-800 whitespace-pre-line my-4 grow relative z-10 text-center tracking-tight break-words px-2">
                         {item.quote.replace(/\\n/g, '\n')}
                       </p>
 
-                      <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5 relative z-10">
-                        <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-col gap-6 mt-6 relative z-10">
+                        {/* 💡 แท็กคำศัพท์: ล็อคไม่ให้คำตกบรรทัดด้วย whitespace-nowrap */}
+                        <div className="flex flex-wrap justify-center gap-2">
                           {item.words?.map((word, wIdx) => (
-                            <span key={wIdx} className="text-[10px] font-bold text-blue-400/80 bg-blue-500/10 px-2.5 py-1 rounded-md">
+                            <span 
+                              key={wIdx} 
+                              // 💡 เพิ่ม whitespace-nowrap ป้องกันคำยาวๆ ทะลักกรอบ
+                              className="text-[11px] font-extrabold px-3 py-1 rounded-full border bg-white shadow-sm whitespace-nowrap"
+                              style={{ color: moodColor, borderColor: `${moodColor}40` }}
+                            >
                               #{word}
                             </span>
                           ))}
                         </div>
                         
-                        <div className="flex items-center gap-2" data-html2canvas-ignore="true">
-                          <button 
-                            onClick={() => handleDownloadImage(item.id)}
-                            disabled={downloadingId === item.id}
-                            className="p-2 rounded-full transition-all bg-white/5 text-stone-400 hover:text-white hover:bg-white/20 active:scale-90 disabled:opacity-50"
-                          >
-                            {downloadingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                          </button>
-                          <button 
-                            onClick={() => handleShare(item)}
-                            className={`p-2 rounded-full transition-all active:scale-90 ${isCopied ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-stone-400 hover:text-blue-400 hover:bg-white/10'}`}
-                          >
-                            {isCopied ? <CheckCircle size={16} /> : <Share2 size={16} />}
-                          </button>
+                        {/* 💡 ลายน้ำแบรนด์ (เวลาแคปเจอร์จะติดไปด้วย) */}
+                        <div className="flex flex-col items-center gap-1 mt-2 opacity-50 pb-2">
+                          <div className="text-[8px] font-black tracking-[0.3em] text-stone-800 uppercase bg-white/60 px-3 py-1 rounded-full border border-white">
+                            KHOMSATSAT <span className="text-blue-500 mx-1">×</span> UPSKILL WITH FUII
+                          </div>
+                        </div>
+
+                        {/* 💡 ปุ่ม Action (ถูก Ignore ตอนแคปเจอร์) */}
+                        <div className="flex items-center justify-between pt-5 border-t border-stone-200/60" data-html2canvas-ignore="true">
                           <button 
                             onClick={() => handleLike(item.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all active:scale-90 ${hasLiked ? 'bg-red-500/10 text-red-500' : 'bg-white/5 text-stone-400 hover:text-red-400 hover:bg-white/10'}`}
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-full transition-all active:scale-90 font-bold text-[13px] shadow-sm border ${hasLiked ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-stone-100 text-stone-500 hover:text-red-400 hover:border-red-100'}`}
                           >
                             <Heart size={16} className={hasLiked ? "fill-current" : ""} />
-                            <span className="text-[12px] font-bold">{item.likes || 0}</span>
+                            <span>{item.likes || 0}</span>
                           </button>
+
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => handleDownloadImage(item.id)}
+                              disabled={downloadingId === item.id}
+                              className="p-2.5 rounded-full transition-all bg-white border border-stone-100 text-stone-500 shadow-sm hover:text-stone-800 hover:bg-stone-50 active:scale-90 disabled:opacity-50"
+                            >
+                              {downloadingId === item.id ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <Download size={16} />}
+                            </button>
+                            <button 
+                              onClick={() => handleShare(item)}
+                              className={`p-2.5 rounded-full transition-all shadow-sm active:scale-90 border ${isCopied ? 'bg-green-50 border-green-100 text-green-500' : 'bg-white border-stone-100 text-stone-500 hover:text-blue-500 hover:border-blue-100'}`}
+                            >
+                              {isCopied ? <CheckCircle size={16} /> : <Share2 size={16} />}
+                            </button>
+                          </div>
                         </div>
+
                       </div>
                     </motion.div>
                   );
@@ -324,16 +373,15 @@ export default function GalleryPage() {
               </AnimatePresence>
             </div>
 
-            {/* 💡 6. ปุ่ม Load More จะโชว์ก็ต่อเมื่อมีข้อมูลเหลือ */}
             {hasMore && (
               <motion.button 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 onClick={loadMoreQuotes}
                 disabled={loadingMore}
-                className="mt-12 px-8 py-3 bg-stone-900 border border-white/10 text-stone-300 font-bold rounded-full text-[13px] hover:bg-stone-800 hover:text-white active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+                className="mt-14 px-8 py-3.5 bg-stone-900 shadow-xl shadow-stone-900/10 text-white font-bold rounded-full text-[14px] hover:bg-stone-800 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {loadingMore ? (
-                  <><Loader2 size={16} className="animate-spin text-blue-500" /> กำลังโหลดเพิ่ม...</>
+                  <><Loader2 size={18} className="animate-spin text-stone-400" /> กำลังโหลดเพิ่ม...</>
                 ) : (
                   "โหลดคำคมเพิ่มเติม"
                 )}
@@ -344,11 +392,12 @@ export default function GalleryPage() {
         )}
       </main>
 
-      <footer className="w-full py-10 mt-auto border-t border-white/5 flex flex-col items-center justify-center relative z-10 bg-stone-950/50 backdrop-blur-md">
-        <p className="text-[10px] text-stone-500 font-black uppercase tracking-[0.3em] drop-shadow-sm">
-          Khomsatsat <span className="text-blue-500/60 mx-1">×</span> Upskill with Fuii
+      {/* 💡 6. Footer คลีนๆ สบายตา */}
+      <footer className="w-full py-10 mt-auto flex flex-col items-center justify-center relative z-10 bg-white/50 backdrop-blur-md border-t border-white">
+        <p className="text-[10px] text-stone-600 font-black uppercase tracking-[0.3em] drop-shadow-sm">
+          Khomsatsat <span className="text-blue-600 mx-1">×</span> Upskill with Fuii
         </p>
-        <p className="text-[9px] text-stone-600 font-medium tracking-wider mt-2">
+        <p className="text-[10px] text-stone-400 font-medium tracking-wider mt-2">
           © {new Date().getFullYear()} All rights reserved.
         </p>
       </footer>

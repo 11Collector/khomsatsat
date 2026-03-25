@@ -1,20 +1,20 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBvWxJGob-m2OAvAltUOQdFdMlJjp0XNAo",
-  authDomain: "khomsatsat.firebaseapp.com",
-  projectId: "khomsatsat",
-  storageBucket: "khomsatsat.firebasestorage.app",
-  messagingSenderId: "164591475147",
-  appId: "1:164591475147:web:6234204823395c0c28fe4e",
-  measurementId: "G-97SM4V1YLR"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
+
+// 💡 ตัวดักจับ: ถ้าหา projectId ไม่เจอ ให้แจ้งเตือนใน Console ทันที!
+if (!firebaseConfig.projectId) {
+  console.error("🚨 ดึงค่า Firebase Config ไม่สำเร็จ! กรุณาเช็คไฟล์ .env.local และอย่าลืม Restart Server (npm run dev)");
+}
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
