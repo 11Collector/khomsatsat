@@ -247,7 +247,7 @@ const handleDownloadImage = async (quoteId: string) => {
           </Link>
           <div className="text-center">
             <h1 className="text-4xl font-black tracking-tight text-stone-900 drop-shadow-sm">แกลเลอรี<span className="text-blue-600">ทัชใจ</span></h1>
-            <p className="text-[12px] text-stone-500 mt-0.5 font-bold tracking-wide">รวมความรู้สึกที่ถูกกลั่นกรอง</p>
+            <p className="text-[12px] text-stone-500 mt-0.5 font-bold tracking-wide">รวมคำคม ความรู้สึกที่ถูกกลั่นกรอง</p>
           </div>
         </div>
 
