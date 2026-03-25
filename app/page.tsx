@@ -652,32 +652,43 @@ export default function SwipeQuoteApp() {
           <Quote size={28} className="text-blue-400" />
         </div>
 
-        {/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
-        <div className="w-full flex flex-col items-center gap-1.5 mt-2 px-1">
-          {(finalQuote || "").replace(/\\n/g, '\n').split('\n').map((line, idx) => {
-            if (!line.trim()) return null;
-            return (
-              <span 
-                key={idx}
-                className="text-[20px] sm:text-[24px] font-black leading-relaxed text-white tracking-wide text-center relative inline-block drop-shadow-[0_2px_8px_rgba(255,255,255,0.15)] max-w-full"
-                style={{ wordBreak: 'break-word' }}
-              >
-                <span className="relative z-10 px-2 block">{line.trim()}</span>
-                
-                {/* ไฮไลท์สีด้านหลังข้อความ (💡 แก้ปัญหาสีเพี้ยนตอนเซฟ!) */}
-                <span 
-                  // 💡 แก้ไขหลัก: เอา mix-blend-screen ออก (เพราะตอนเซฟชอบพัง)
-                  // แล้วปรับสีไฮไลท์ให้ "สว่างขึ้น" และใช้ opacity ต่ำๆ แทน (เช่น opacity-60)
-                  className="absolute bottom-1.5 left-0 w-full h-[35%] opacity-60 z-0 rounded-sm -rotate-1"
-                  style={{
-                    // ปรับสีไฮไลท์ให้โทน "สว่าง" (Lighten version) เพื่อให้พุ่งบนพื้นมืด
-                    backgroundColor: playerMood ? ({happy: "#fde047", sad: "#93c5fd", angry: "#f87171", fear: "#c084fc", love: "#f472b6", lonely: "#a8a29e", hope: "#6ee7b7", confused: "#a5b4fc", apathetic: "#94a3b8", exhausted: "#fdba74"})[playerMood.id] || "#60a5fa" : "#60a5fa"
-                  }}
-                ></span>
-              </span>
-            );
-          })}
-        </div>
+       {/* ส่วนคำคม: สไตล์ Marker Highlight เน้นข้อความ */}
+<div className="w-full flex flex-col items-center gap-1.5 mt-2 px-1">
+  {(finalQuote || "").replace(/\\n/g, '\n').split('\n').map((line, idx) => {
+    if (!line.trim()) return null;
+    return (
+      <span 
+        key={idx}
+        // 💡 แก้ไข 1: เปลี่ยนเงาตัวหนังสือให้เป็นสีดำเข้ม เพื่อตัดขอบให้ฟอนต์ขาวลอยเด่นขึ้นมา
+        className="text-[20px] sm:text-[24px] font-black leading-relaxed text-white tracking-wide text-center relative inline-block drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] max-w-full"
+        style={{ wordBreak: 'break-word' }}
+      >
+        <span className="relative z-10 px-2 block">{line.trim()}</span>
+        
+        {/* ไฮไลท์สีด้านหลังข้อความ */}
+        <span 
+          // 💡 แก้ไข 2: เพิ่ม Opacity ให้เข้มขึ้นเป็น 80
+          className="absolute bottom-1.5 left-0 w-full h-[35%] opacity-80 z-0 rounded-sm -rotate-1"
+          style={{
+            // 💡 แก้ไข 3: ปรับโค้ดสีให้เป็นเฉดที่ "เข้มและลึกขึ้น" (Tailwind 600 shades) ตัดกับสีขาวได้ดีมาก
+            backgroundColor: playerMood ? ({
+              happy: "#ca8a04",    // เหลืองเข้ม (Yellow 600)
+              sad: "#2563eb",      // น้ำเงินเข้ม (Blue 600)
+              angry: "#dc2626",    // แดงเข้ม (Red 600)
+              fear: "#9333ea",     // ม่วงเข้ม (Purple 600)
+              love: "#db2777",     // ชมพูเข้ม (Pink 600)
+              lonely: "#57534e",   // เทาหินทึบ (Stone 600)
+              hope: "#059669",     // เขียวเข้ม (Emerald 600)
+              confused: "#4f46e5", // ครามเข้ม (Indigo 600)
+              apathetic: "#475569",// เทาอมฟ้าเข้ม (Slate 600)
+              exhausted: "#ea580c" // ส้มเข้ม (Orange 600)
+            })[playerMood.id] || "#2563eb" : "#2563eb"
+          }}
+        ></span>
+      </span>
+    );
+  })}
+</div>
 
         {/* แท็กคำศัพท์: ดีไซน์แบบ Pill Button โทนดาร์ก */}
         <div className="flex flex-wrap justify-center items-center gap-2.5">
