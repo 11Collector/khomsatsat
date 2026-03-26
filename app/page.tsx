@@ -78,19 +78,20 @@ const abstractWords = {
     "คลาน", "สะสม", "ตึงเครียด", "สุดทาง", "นาฬิกาปลุก", "แบตเตอรี่", "หมดไฟ", "ฝืนทน", "ปิดสวิตช์", "หยาดเหงื่อ"
   ]
 };
-// 💡 วงกว้าง 110px ครึ่งนึงคือ 55px (calc(50% - 55px) จะทำให้อยู่ตรงกลางพอดีเป๊ะ)
+// 💡 วงกว้าง 90px ครึ่งนึงคือ 45px (calc(50% - 45px) จะทำให้อยู่ตรงกลางพอดีเป๊ะ)
 const safePositions = [
   // --- โซนบน 5 วง (เกาะขอบบน) ---
   "top-[6%] left-[5%]",                     
   "top-[4%] right-[8%]",                    
-  "top-[16%] left-[calc(50%-55px)]",        // 💡 แก้ตรงนี้ (ตรงกลางบน)
+  "top-[16%] left-[calc(50%-45px)]",        // 💡 แก้เป็น 45px
   "top-[28%] left-[8%]",                    
   "top-[26%] right-[5%]",                   
 
-  "bottom-[34%] left-[6%]",                 // 💡 ขยับขึ้นจาก 28% -> 34%
-  "bottom-[32%] right-[8%]",                // 💡 ขยับขึ้นจาก 26% -> 32%
-  "bottom-[22%] left-[calc(50%-55px)]",     // 💡 ขยับตรงกลางขึ้นจาก 16% -> 22%
-  "bottom-[8%] left-[10%]",                 // 💡 ขยับขอบล่างขึ้นนิดหน่อยให้สมดุล
+  // --- โซนล่าง 5 วง ---
+  "bottom-[34%] left-[6%]",                 
+  "bottom-[32%] right-[8%]",                
+  "bottom-[22%] left-[calc(50%-45px)]",     // 💡 แก้เป็น 45px
+  "bottom-[8%] left-[10%]",                 
   "bottom-[10%] right-[7%]"              
 ];
 
@@ -113,7 +114,6 @@ const loadingPhrases = [
   "เตรียมแคปได้เลย ประโยคนี้เพื่อคุณ 📸"
 ];
 // --- Helper Component สำหรับ Bubble ---
-// 💡 ตรงนี้ต้องมีคำว่า index ด้วย
 const Circle = ({ mood, pos, delay, index, onStart }: any) => {
  const getThemeColors = (id: string) => {
     const themes: Record<string, { border: string, shadow: string }> = {
@@ -132,21 +132,24 @@ const Circle = ({ mood, pos, delay, index, onStart }: any) => {
   };
 
   const theme = getThemeColors(mood.id);
-  // 💡 เอา index มาคำนวณความเร็วให้แต่ละลูกลอยไม่เท่ากัน
   const duration = 5 + ((index || 0) % 4); 
 
   return (
     <motion.button 
       animate={floatingAnimation(delay, duration)}
       onClick={() => onStart(mood)}
-      className={`absolute ${pos} w-[110px] h-[110px] rounded-full border-[2.5px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all bg-white/90 backdrop-blur-sm shrink-0 z-20 hover:scale-105`}
+      // 💡 เปลี่ยน w-[110px] h-[110px] เป็น w-[90px] h-[90px]
+      className={`absolute ${pos} w-[90px] h-[90px] rounded-full border-[2.5px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all bg-white/90 backdrop-blur-sm shrink-0 z-20 hover:scale-105`}
       style={{ 
         borderColor: theme.border,
         boxShadow: `0 10px 25px -5px ${theme.shadow}, 0 8px 10px -6px ${theme.shadow}`
       }}
     >
-      <span className="text-5xl mb-0.5 drop-shadow-sm">{mood.icon}</span>
-      <span className="font-extrabold text-[12px] text-stone-700 tracking-tight text-center px-1 leading-none">{mood.title}</span>
+      {/* 💡 ลดขนาด Emoji จาก 5xl เป็น 4xl */}
+      <span className="text-4xl mb-0.5 drop-shadow-sm">{mood.icon}</span>
+      
+      {/* 💡 ลดขนาด Text จาก 12px เป็น 11px */}
+      <span className="font-extrabold text-[11px] text-stone-700 tracking-tight text-center px-1 leading-none">{mood.title}</span>
     </motion.button>
   );
 };

@@ -125,30 +125,58 @@ export default function GalleryPage() {
     }
   };
 
+// 💡 1. โหลดข้อมูลการไลค์จากเครื่องผู้ใช้ (ทำแค่ครั้งเดียวตอนเข้าหน้าเว็บ)
+  useEffect(() => {
+    try {
+      const savedLikes = localStorage.getItem("khomsatsat_likes");
+      if (savedLikes) {
+        setLikedQuotes(JSON.parse(savedLikes));
+      }
+    } catch (error) {
+      console.error("Failed to parse likes from local storage", error);
+    }
+  }, []); // <-- ปีกกาว่าง [] สำคัญมาก แปลว่าทำแค่ตอนเปิดหน้าเว็บครั้งแรก
+
+  // 💡 2. ดึงข้อมูลคำคมจาก Firebase (ทำทุกครั้งที่เปลี่ยนหมวดหมู่)
   useEffect(() => {
     fetchInitialQuotes();
-    const savedLikes = localStorage.getItem("khomsatsat_likes");
-    if (savedLikes) setLikedQuotes(JSON.parse(savedLikes));
   }, [activeFilter]);
 
+// 💡 3. ปรับระบบกดไลค์
   const handleLike = async (quoteId: string) => {
+    // 1) เช็คว่าเคยไลค์รูปนี้ไปหรือยังจาก State ปัจจุบัน
     const isLiked = likedQuotes.includes(quoteId);
-    let newLikedQuotes;
-    if (isLiked) {
-      newLikedQuotes = likedQuotes.filter(id => id !== quoteId);
-      setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, likes: Math.max(0, (q.likes || 0) - 1) } : q));
-    } else {
-      newLikedQuotes = [...likedQuotes, quoteId];
-      setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, likes: (q.likes || 0) + 1 } : q));
-    }
+
+    // 2) เตรียม Array ใหม่: ถ้าเคยไลค์ให้เอาออก (Unlike) ถ้ายังให้เพิ่มเข้าไป (Like)
+    const newLikedQuotes = isLiked
+      ? likedQuotes.filter((id) => id !== quoteId)
+      : [...likedQuotes, quoteId];
+
+    // 3) บันทึกลง State และ LocalStorage ให้เครื่องจำไว้ทันที
     setLikedQuotes(newLikedQuotes);
     localStorage.setItem("khomsatsat_likes", JSON.stringify(newLikedQuotes));
 
+    // 4) อัปเดตตัวเลขไลค์บนหน้าจอทันที (ไม่ต้องรอโหลด Firebase)
+    setQuotes((prevQuotes) =>
+      prevQuotes.map((q) => {
+        if (q.id === quoteId) {
+          return {
+            ...q,
+            likes: Math.max(0, (q.likes || 0) + (isLiked ? -1 : 1)),
+          };
+        }
+        return q;
+      })
+    );
+
+    // 5) ส่งข้อมูลไปอัปเดตยอดไลค์รวมที่ Firebase (ทำงานเบื้องหลัง)
     try {
       const quoteRef = doc(db, "quotes", quoteId);
-      await updateDoc(quoteRef, { likes: isLiked ? increment(-1) : increment(1) });
+      await updateDoc(quoteRef, { 
+        likes: isLiked ? increment(-1) : increment(1) 
+      });
     } catch (error) {
-      console.error("Error updating like:", error);
+      console.error("Error updating like in Firebase:", error);
     }
   };
 
