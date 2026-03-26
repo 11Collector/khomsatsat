@@ -196,7 +196,7 @@ export default function SwipeQuoteApp() {
         quality: 1,
         pixelRatio: 2, 
         // 💡 เปลี่ยนสีรองพื้นตอนแคปเจอร์เป็นสีสว่าง (stone-50) ให้ตรงกับหน้าเว็บ
-        backgroundColor: "#fafaf9", 
+        backgroundColor: "#020617", 
         style: {
           transform: 'scale(1)', // 💡 ป้องกันบัคแคปรูปแล้วเบี้ยวถ้าจอซูมอยู่
         }
